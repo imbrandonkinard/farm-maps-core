@@ -31,10 +31,10 @@
   "author": "Farm Management Team",
   "license": "MIT",
   "peerDependencies": {
-    "@reduxjs/toolkit": "^1.9.0",
+    "@reduxjs/toolkit": "^1.9.0 || ^2.0.0",
     "react": "^18.2.0",
-    "react-map-gl": "^7.0.0",
-    "react-redux": "^8.0.0"
+    "react-redux": "^8.0.0",
+    "react-map-gl": "^7.0.0"
   },
   "dependencies": {
     "@mapbox/mapbox-gl-draw": "^1.5.0",
@@ -47,7 +47,7 @@
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
-    "react-map-gl": "^8.0.4",
+    "react-map-gl": "^8.0.0",
     "rimraf": "^5.0.0",
     "rollup": "^3.0.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
@@ -55,17 +55,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/imbrandonkinard/farm-maps-core.git"
+    "url": "https://github.com/your-org/farm-maps-core.git"
   },
   "bugs": {
-    "url": "https://github.com/imbrandonkinard/farm-maps-core/issues"
+    "url": "https://github.com/your-org/farm-maps-core/issues"
   },
-  "homepage": "https://github.com/imbrandonkinard/farm-maps-core#readme",
-  "publishConfig": {
-    "access": "public"
-  },
-  "overrides": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  }
+  "homepage": "https://github.com/your-org/farm-maps-core#readme"
 }
