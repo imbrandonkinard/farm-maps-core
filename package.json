@@ -1,6 +1,6 @@
 {
   "name": "@farm-maps/core",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Core mapping and drawing components for farm management applications",
   "type": "module",
   "main": "dist/index.js",
