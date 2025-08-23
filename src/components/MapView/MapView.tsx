@@ -101,7 +101,7 @@ export const MapView: React.FC<MapViewProps> = ({
     }
   }, [dispatch]);
 
-  
+
 
   // Use simple static map style
   const finalMapStyle = mapStyle;

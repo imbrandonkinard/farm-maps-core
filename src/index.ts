@@ -1,6 +1,7 @@
 // Core Components
 export { default as DrawControl } from './components/DrawControl/DrawControl';
 export { MapView } from './components/MapView/MapView';
+export { WorkingMapView } from './components/WorkingMapView/WorkingMapView';
 export { ControlPanel } from './components/ControlPanel/ControlPanel';
 export { FeatureSearchPanel } from './components/FeatureSearchPanel/FeatureSearchPanel';
 export { FeatureSelectPopup } from './components/FeatureSelectPopup/FeatureSelectPopup';
