@@ -317,6 +317,111 @@ npm run dev
 npm run type-check
 ```
 
+## 🚀 Development & Publishing Workflow
+
+### **Local Development**
+
+1. **Make changes** to the source code in `src/`
+2. **Test locally** by building the package:
+   ```bash
+   npm run build
+   npm run type-check
+   ```
+
+3. **Link locally** for testing in other projects:
+   ```bash
+   npm link
+   cd ../your-test-project
+   npm link @farm-maps/core
+   ```
+
+### **Publishing Updates**
+
+1. **Ensure clean git working directory**:
+   ```bash
+   git status
+   git add .
+   git commit -m "Description of changes"
+   ```
+
+2. **Build the package**:
+   ```bash
+   npm run build
+   ```
+
+3. **Bump version** (choose one):
+   ```bash
+   npm version patch    # 1.0.0 → 1.0.1 (bug fixes)
+   npm version minor    # 1.0.0 → 1.1.0 (new features)
+   npm version major    # 1.0.0 → 2.0.0 (breaking changes)
+   ```
+
+4. **Publish to npm**:
+   ```bash
+   npm publish
+   ```
+
+### **Troubleshooting Publishing Issues**
+
+#### **Git Working Directory Not Clean**
+```bash
+# Commit all changes first
+git add .
+git commit -m "Update package configuration"
+npm version patch
+```
+
+#### **Version Already Exists**
+```bash
+# Bump to a new version
+npm version patch
+npm publish
+```
+
+#### **Wrong Directory Publishing**
+```bash
+# Ensure you're in farm-maps-core directory
+pwd  # Should show: .../farm_management/farm-maps-core
+npm publish
+```
+
+### **Dependency Management**
+
+#### **Updating Peer Dependencies**
+When updating peer dependencies, ensure compatibility:
+
+```json
+"peerDependencies": {
+  "@reduxjs/toolkit": "^1.9.0 || ^2.0.0",
+  "react": "^18.2.0",
+  "react-redux": "^8.0.0 || ^9.0.0",
+  "react-map-gl": "^7.0.0 || ^8.0.0"
+}
+```
+
+#### **Testing Compatibility**
+After updating dependencies:
+1. **Build locally** to check for TypeScript errors
+2. **Test in a sample project** with different dependency versions
+3. **Update examples** if needed
+4. **Publish new version** when stable
+
+### **Version Strategy**
+
+- **Patch (1.0.x)**: Bug fixes, minor improvements
+- **Minor (1.x.0)**: New features, backward compatible
+- **Major (x.0.0)**: Breaking changes, major refactoring
+
+### **Quality Assurance**
+
+Before publishing:
+- [ ] All tests pass
+- [ ] TypeScript compilation successful
+- [ ] Examples work correctly
+- [ ] Documentation updated
+- [ ] Changelog updated
+- [ ] Version bumped appropriately
+
 ## Contributing
 
 1. Fork the repository

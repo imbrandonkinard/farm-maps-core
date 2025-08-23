@@ -23,15 +23,70 @@ export {
   selectFeatureById
 } from './store/mapSlice';
 
-// Utilities
+// Basic Geometry Utilities
 export {
   calculateAreaInAcres,
   calculateAreaInMultipleUnits,
+  calculateArea,
+  calculateTotalArea,
   isPointInPolygon,
   getPolygonCentroid,
   bufferPolygon,
-  simplifyPolygon
+  simplifyPolygon,
+  calculateDistance,
+  calculatePerimeter,
+  doPolygonsIntersect,
+  calculateIntersectionArea,
+  unionPolygons,
+  differencePolygons,
+  getBoundingBox,
+  createBoundingBoxPolygon,
+  isFeatureInBbox,
+  calculateAreaWeightedCentroid,
+  convertArea
 } from './utils/geometry';
+
+// Advanced Geometry Utilities
+export {
+  calculateConvexHull,
+  calculateMinimumBoundingCircle,
+  calculateCenterOfMass,
+  calculateEnvelope,
+  calculateMinimumBoundingRectangle,
+  calculateNearestPointOnLine,
+  findNearestPoint,
+  calculateBearing,
+  calculateDestinationPoint,
+  calculateMidpoint,
+  calculateGreatCircleDistance,
+  calculateAreaInSquareFeet,
+  calculateAreaInHectares,
+  calculateAreaInSquareKilometers,
+  calculatePerimeterInFeet,
+  calculatePerimeterInMiles,
+  doesLineIntersectPolygon,
+  calculateLineLength,
+  bufferLine,
+  simplifyLine
+} from './utils/advancedGeometry';
+
+// Measurement and Analysis Utilities
+export {
+  calculateTotalAreaInUnit,
+  calculateAverageArea,
+  findLargestFeature,
+  findSmallestFeature,
+  calculateFeatureDensity,
+  calculateTotalPerimeter,
+  calculateCompactnessRatio,
+  calculateElongationRatio,
+  calculateAspectRatio,
+  calculateCircularity,
+  calculateFractalDimension,
+  calculateEfficiency,
+  calculateShapeIndex,
+  calculateRoundness
+} from './utils/measurementUtils';
 
 export {
   createDefaultLayer,
