@@ -9,10 +9,10 @@ export interface ControlPanelProps {
   onDelete: (event: any) => void;
 }
 
-export const ControlPanel: React.FC<ControlPanelProps> = ({ 
-  polygons, 
-  onPolygonClick, 
-  onDelete 
+export const ControlPanel: React.FC<ControlPanelProps> = ({
+  polygons,
+  onPolygonClick,
+  onDelete
 }) => {
   const dispatch = useDispatch();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -35,9 +35,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         name: editingName
       }
     }));
-    
-    onDelete({ 
-      type: 'save', 
+
+    onDelete({
+      type: 'save',
       features: [{
         ...polygon,
         properties: {
@@ -46,7 +46,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         }
       }]
     });
-    
+
     setEditingId(null);
   };
 
@@ -61,17 +61,17 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   return (
     <div>
       {polygons.map(polygon => (
-        <div 
+        <div
           key={polygon.id}
-          style={{ 
+          style={{
             display: 'flex',
             alignItems: 'center',
             padding: '12px 0',
             borderBottom: '1px solid #eee'
           }}
         >
-          <div 
-            style={{ 
+          <div
+            style={{
               flex: 1,
               cursor: 'pointer',
               display: 'flex',

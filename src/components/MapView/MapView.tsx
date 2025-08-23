@@ -1,23 +1,20 @@
 import React, { useCallback, useRef, useEffect, useState, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ReactMapGL, { NavigationControl } from 'react-map-gl/maplibre';
-import 'maplibre-gl/dist/maplibre-gl.css';
-import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
-import { 
-  ControlPanel,
-  FeatureSearchPanel,
-  FeatureSelectPopup,
-  updateFeatures, 
-  deleteFeatures, 
-  updateCurrentArea, 
+import { ControlPanel } from '../ControlPanel/ControlPanel';
+import { FeatureSearchPanel } from '../FeatureSearchPanel/FeatureSearchPanel';
+import { FeatureSelectPopup } from '../FeatureSelectPopup/FeatureSelectPopup';
+import {
+  updateFeatures,
+  deleteFeatures,
+  updateCurrentArea,
   updateFeatureProperties,
   selectFeatures,
   selectCurrentArea,
-  selectGeoJSON,
-  createMapboxDraw,
-  updateMapboxDrawConstants,
-  calculateAreaInAcres
-} from '../../index';
+  selectGeoJSON
+} from '../../store/mapSlice';
+import { createMapboxDraw, updateMapboxDrawConstants } from '../../utils/mapboxUtils';
+import { calculateAreaInAcres } from '../../utils/geometry';
 import { MapViewProps, MapLayer } from '../../types';
 
 export const MapView: React.FC<MapViewProps> = ({
@@ -50,7 +47,7 @@ export const MapView: React.FC<MapViewProps> = ({
   const features = useSelector(selectFeatures);
   const geojson = useSelector(selectGeoJSON);
   const roundedArea = useSelector(selectCurrentArea);
-  
+
   const mapRef = useRef<any>(null);
   const drawRef = useRef<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -63,10 +60,10 @@ export const MapView: React.FC<MapViewProps> = ({
     if (enableDebugLogging) {
       console.log('Features state changed:', features);
       console.log('Features count:', features.length);
-      console.log('Features details:', features.map(f => ({ 
-        id: f.id, 
-        name: f.properties?.name, 
-        type: f.geometry?.type 
+      console.log('Features details:', features.map(f => ({
+        id: f.id,
+        name: f.properties?.name,
+        type: f.geometry?.type
       })));
     }
   }, [features, enableDebugLogging]);
@@ -157,7 +154,7 @@ export const MapView: React.FC<MapViewProps> = ({
     // Calculate area and update Redux store
     const area = calculateAreaInAcres(polygon);
     dispatch(updateCurrentArea(area));
-    
+
     if (onFeatureSelect) {
       onFeatureSelect(polygon);
     }
@@ -176,8 +173,8 @@ export const MapView: React.FC<MapViewProps> = ({
     if (!map) return;
 
     const features = map.queryRenderedFeatures(event.point);
-    const ahupuaaFeatures = features.filter((f: any) => 
-      f.layer.id === 'boundary_ahupuaa_layer' || 
+    const ahupuaaFeatures = features.filter((f: any) =>
+      f.layer.id === 'boundary_ahupuaa_layer' ||
       f.layer.id === 'boundary_school_complex_layer'
     );
 
@@ -259,13 +256,13 @@ export const MapView: React.FC<MapViewProps> = ({
   }, [layers, mapStyle]);
 
   return (
-    <div style={{ 
+    <div style={{
       width: '100%',
       height: '100%',
       position: 'relative',
       display: 'flex'
     }}>
-      <div style={{ 
+      <div style={{
         flex: 1,
         position: 'relative'
       }}>
@@ -310,7 +307,7 @@ export const MapView: React.FC<MapViewProps> = ({
           onLoad={(event) => {
             const map = event.target;
             setMapLoaded(true);
-            
+
             // Initialize drawing functionality
             updateMapboxDrawConstants();
             const draw = createMapboxDraw({
@@ -322,58 +319,58 @@ export const MapView: React.FC<MapViewProps> = ({
               touchBuffer: 4,
               boxSelect: false
             });
-            
+
             map.addControl(draw, 'top-left');
-            
+
             // Store draw reference
             drawRef.current = draw;
-            
+
             // Add event listeners
             map.on('draw.create', (e: any) => {
               if (enableDebugLogging) {
                 console.log('Draw create event:', e);
                 console.log('Raw features from MapboxDraw:', e.features);
               }
-              
+
               const enhancedFeatures = e.features.map((f: any) => ({
                 ...f,
                 properties: { ...f.properties, name: `Field ${f.id.slice(0, 6)}` }
               }));
-              
+
               // Dispatch Redux action to add new features
               dispatch(updateFeatures(enhancedFeatures));
-              
+
               if (onFeatureCreate) {
                 onFeatureCreate(enhancedFeatures);
               }
             });
-            
+
             map.on('draw.update', (e) => {
               if (enableDebugLogging) {
                 console.log('Draw update event:', e);
               }
-              
+
               // Dispatch Redux action to update features
               dispatch(updateFeatures(e.features));
-              
+
               if (onFeatureUpdate) {
                 onFeatureUpdate(e.features);
               }
             });
-            
+
             map.on('draw.delete', (e) => {
               if (enableDebugLogging) {
                 console.log('Draw delete event:', e);
               }
-              
+
               // Dispatch Redux action to delete features
               dispatch(deleteFeatures(e.features));
-              
+
               if (onFeatureDelete) {
                 onFeatureDelete(e.features);
               }
             });
-            
+
             map.on('draw.selectionchange', (e) => {
               if (e.features && e.features.length > 0) {
                 draw.changeMode('direct_select', { featureId: e.features[0].id });
@@ -386,7 +383,7 @@ export const MapView: React.FC<MapViewProps> = ({
           }}
         >
           {showNavigationControl && (
-            <NavigationControl 
+            <NavigationControl
               position="top-right"
               showCompass={false}
               showZoom={true}
@@ -404,9 +401,9 @@ export const MapView: React.FC<MapViewProps> = ({
           />
         )}
       </div>
-      
+
       {showControlPanel && (
-        <div style={{ 
+        <div style={{
           width: '300px',
           backgroundColor: '#fff',
           display: 'flex',
@@ -426,7 +423,7 @@ export const MapView: React.FC<MapViewProps> = ({
             overflowY: 'auto',
             padding: '15px'
           }}>
-            <ControlPanel 
+            <ControlPanel
               polygons={features}
               onPolygonClick={onPolygonClick}
               onDelete={onDelete}
