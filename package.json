@@ -1,6 +1,6 @@
 {
   "name": "@farm-maps/core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Core mapping and drawing components for farm management applications",
   "type": "module",
   "main": "dist/index.js",
@@ -34,7 +34,7 @@
     "@reduxjs/toolkit": "^1.9.0 || ^2.0.0",
     "react": "^18.2.0",
     "react-redux": "^8.0.0",
-    "react-map-gl": "^7.0.0"
+    "react-map-gl": "^7.0.0 || ^8.0.0"
   },
   "dependencies": {
     "@mapbox/mapbox-gl-draw": "^1.5.0",
