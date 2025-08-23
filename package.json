@@ -1,0 +1,71 @@
+{
+  "name": "@farm-maps/core",
+  "version": "1.0.0",
+  "description": "Core mapping and drawing components for farm management applications",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean",
+    "prepublishOnly": "npm run build",
+    "test": "jest",
+    "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "farm",
+    "maps",
+    "drawing",
+    "gis",
+    "react",
+    "maplibre",
+    "mapbox"
+  ],
+  "author": "Farm Management Team",
+  "license": "MIT",
+  "peerDependencies": {
+    "@reduxjs/toolkit": "^1.9.0",
+    "react": "^18.2.0",
+    "react-map-gl": "^7.0.0",
+    "react-redux": "^8.0.0"
+  },
+  "dependencies": {
+    "@mapbox/mapbox-gl-draw": "^1.5.0",
+    "@turf/turf": "^7.2.0",
+    "maplibre-gl": "^5.2.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "react-map-gl": "^8.0.4",
+    "rimraf": "^5.0.0",
+    "rollup": "^3.0.0",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/imbrandonkinard/farm-maps-core.git"
+  },
+  "bugs": {
+    "url": "https://github.com/imbrandonkinard/farm-maps-core/issues"
+  },
+  "homepage": "https://github.com/imbrandonkinard/farm-maps-core#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "overrides": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
