@@ -8,7 +8,7 @@ import { GeoJSONFeature } from '../types';
  * @returns Total area in specified unit
  */
 export const calculateTotalAreaInUnit = (
-  features: GeoJSONFeature[], 
+  features: GeoJSONFeature[],
   unit: 'acres' | 'hectares' | 'squareMeters' | 'squareFeet' | 'squareKilometers' = 'acres'
 ): number => {
   const totalAreaInSquareMeters = features.reduce((total, feature) => {
@@ -36,11 +36,11 @@ export const calculateTotalAreaInUnit = (
  * @returns Average area in specified unit
  */
 export const calculateAverageArea = (
-  features: GeoJSONFeature[], 
+  features: GeoJSONFeature[],
   unit: 'acres' | 'hectares' | 'squareMeters' | 'squareFeet' | 'squareKilometers' = 'acres'
 ): number => {
   if (features.length === 0) return 0;
-  
+
   const totalArea = calculateTotalAreaInUnit(features, unit);
   return totalArea / features.length;
 };
@@ -52,7 +52,7 @@ export const calculateAverageArea = (
  */
 export const findLargestFeature = (features: GeoJSONFeature[]): GeoJSONFeature | null => {
   if (features.length === 0) return null;
-  
+
   return features.reduce((largest, current) => {
     const largestArea = turf.area(largest as any);
     const currentArea = turf.area(current as any);
@@ -67,7 +67,7 @@ export const findLargestFeature = (features: GeoJSONFeature[]): GeoJSONFeature |
  */
 export const findSmallestFeature = (features: GeoJSONFeature[]): GeoJSONFeature | null => {
   if (features.length === 0) return null;
-  
+
   return features.reduce((smallest, current) => {
     const smallestArea = turf.area(smallest as any);
     const currentArea = turf.area(current as any);
@@ -93,7 +93,7 @@ export const calculateFeatureDensity = (features: GeoJSONFeature[], boundaryArea
  * @returns Total perimeter in specified unit
  */
 export const calculateTotalPerimeter = (
-  features: GeoJSONFeature[], 
+  features: GeoJSONFeature[],
   unit: 'meters' | 'kilometers' | 'miles' | 'feet' = 'meters'
 ): number => {
   return features.reduce((total, feature) => {
@@ -109,9 +109,9 @@ export const calculateTotalPerimeter = (
 export const calculateCompactnessRatio = (polygon: GeoJSONFeature): number => {
   const area = turf.area(polygon as any);
   const perimeter = turf.length(polygon as any, { units: 'meters' });
-  
+
   if (perimeter === 0) return 0;
-  
+
   // Compactness ratio = 4π * area / (perimeter²)
   return (4 * Math.PI * area) / (perimeter * perimeter);
 };
@@ -124,9 +124,9 @@ export const calculateCompactnessRatio = (polygon: GeoJSONFeature): number => {
 export const calculateElongationRatio = (polygon: GeoJSONFeature): number => {
   const area = turf.area(polygon as any);
   const perimeter = turf.length(polygon as any, { units: 'meters' });
-  
+
   if (perimeter === 0) return 0;
-  
+
   // Elongation ratio = perimeter² / (4π * area)
   return (perimeter * perimeter) / (4 * Math.PI * area);
 };
@@ -140,7 +140,7 @@ export const calculateAspectRatio = (polygon: GeoJSONFeature): number => {
   const bbox = turf.bbox(polygon as any);
   const width = bbox[2] - bbox[0];
   const height = bbox[3] - bbox[1];
-  
+
   if (height === 0) return 0;
   return width / height;
 };
@@ -153,9 +153,9 @@ export const calculateAspectRatio = (polygon: GeoJSONFeature): number => {
 export const calculateCircularity = (polygon: GeoJSONFeature): number => {
   const area = turf.area(polygon as any);
   const perimeter = turf.length(polygon as any, { units: 'meters' });
-  
+
   if (perimeter === 0) return 0;
-  
+
   // Circularity = 4π * area / (perimeter²)
   return (4 * Math.PI * area) / (perimeter * perimeter);
 };
@@ -168,9 +168,9 @@ export const calculateCircularity = (polygon: GeoJSONFeature): number => {
 export const calculateFractalDimension = (polygon: GeoJSONFeature): number => {
   const area = turf.area(polygon as any);
   const perimeter = turf.length(polygon as any, { units: 'meters' });
-  
+
   if (area <= 0 || perimeter <= 0) return 0;
-  
+
   // Fractal dimension = 2 * log(perimeter) / log(area)
   return 2 * Math.log(perimeter) / Math.log(area);
 };
@@ -183,9 +183,9 @@ export const calculateFractalDimension = (polygon: GeoJSONFeature): number => {
 export const calculateEfficiency = (polygon: GeoJSONFeature): number => {
   const area = turf.area(polygon as any);
   const perimeter = turf.length(polygon as any, { units: 'meters' });
-  
+
   if (perimeter === 0) return 0;
-  
+
   // Efficiency = 4π * area / (perimeter²)
   return (4 * Math.PI * area) / (perimeter * perimeter);
 };
@@ -198,9 +198,9 @@ export const calculateEfficiency = (polygon: GeoJSONFeature): number => {
 export const calculateShapeIndex = (polygon: GeoJSONFeature): number => {
   const area = turf.area(polygon as any);
   const perimeter = turf.length(polygon as any, { units: 'meters' });
-  
+
   if (area <= 0 || perimeter <= 0) return 0;
-  
+
   // Shape index = perimeter / (2 * √(π * area))
   return perimeter / (2 * Math.sqrt(Math.PI * area));
 };
@@ -213,9 +213,9 @@ export const calculateShapeIndex = (polygon: GeoJSONFeature): number => {
 export const calculateRoundness = (polygon: GeoJSONFeature): number => {
   const area = turf.area(polygon as any);
   const perimeter = turf.length(polygon as any, { units: 'meters' });
-  
+
   if (perimeter === 0) return 0;
-  
+
   // Roundness = 4π * area / (perimeter²)
   return (4 * Math.PI * area) / (perimeter * perimeter);
 };

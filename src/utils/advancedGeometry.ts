@@ -92,8 +92,8 @@ export const calculateBearing = (point1: GeoJSONFeature, point2: GeoJSONFeature)
  * @returns Destination point feature
  */
 export const calculateDestinationPoint = (
-  startPoint: GeoJSONFeature, 
-  distance: number, 
+  startPoint: GeoJSONFeature,
+  distance: number,
   bearing: number
 ): GeoJSONFeature => {
   const destination = turf.destination(startPoint as any, distance, bearing, { units: 'meters' });
@@ -119,8 +119,8 @@ export const calculateMidpoint = (point1: GeoJSONFeature, point2: GeoJSONFeature
  * @returns Great circle distance
  */
 export const calculateGreatCircleDistance = (
-  point1: GeoJSONFeature, 
-  point2: GeoJSONFeature, 
+  point1: GeoJSONFeature,
+  point2: GeoJSONFeature,
   units: 'meters' | 'kilometers' | 'miles' | 'feet' = 'meters'
 ): number => {
   return turf.greatCircle(point1 as any, point2 as any).properties?.distance || 0;
@@ -191,7 +191,7 @@ export const doesLineIntersectPolygon = (line: GeoJSONFeature, polygon: GeoJSONF
  * @returns Length in specified units
  */
 export const calculateLineLength = (
-  line: GeoJSONFeature, 
+  line: GeoJSONFeature,
   units: 'meters' | 'kilometers' | 'miles' | 'feet' = 'meters'
 ): number => {
   return turf.length(line as any, { units });

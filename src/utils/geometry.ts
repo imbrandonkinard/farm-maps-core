@@ -99,8 +99,8 @@ export const simplifyPolygon = (polygon: GeoJSONFeature, tolerance: number = 0.0
  * @returns Distance in specified units
  */
 export const calculateDistance = (
-  point1: GeoJSONFeature, 
-  point2: GeoJSONFeature, 
+  point1: GeoJSONFeature,
+  point2: GeoJSONFeature,
   units: 'meters' | 'kilometers' | 'miles' | 'feet' = 'meters'
 ): number => {
   return turf.distance(point1 as any, point2 as any, { units });
@@ -113,7 +113,7 @@ export const calculateDistance = (
  * @returns Perimeter in specified units
  */
 export const calculatePerimeter = (
-  polygon: GeoJSONFeature, 
+  polygon: GeoJSONFeature,
   units: 'meters' | 'kilometers' | 'miles' | 'feet' = 'meters'
 ): number => {
   return turf.length(polygon as any, { units });
@@ -211,25 +211,25 @@ export const calculateAreaWeightedCentroid = (polygons: GeoJSONFeature[]): GeoJS
   if (polygons.length === 0) {
     throw new Error('No polygons provided');
   }
-  
+
   if (polygons.length === 1) {
     return getPolygonCentroid(polygons[0]);
   }
-  
+
   // Calculate area-weighted centroid
   let totalArea = 0;
   let weightedX = 0;
   let weightedY = 0;
-  
+
   polygons.forEach(polygon => {
     const area = turf.area(polygon as any);
     const centroid = turf.centroid(polygon as any);
-    
+
     totalArea += area;
     weightedX += centroid.geometry.coordinates[0] * area;
     weightedY += centroid.geometry.coordinates[1] * area;
   });
-  
+
   const finalCentroid = turf.point([weightedX / totalArea, weightedY / totalArea]);
   return finalCentroid as any;
 };
@@ -242,13 +242,13 @@ export const calculateAreaWeightedCentroid = (polygons: GeoJSONFeature[]): GeoJS
  * @returns Converted area value
  */
 export const convertArea = (
-  area: number, 
+  area: number,
   fromUnit: 'squareMeters' | 'acres' | 'hectares' | 'squareFeet' | 'squareKilometers',
   toUnit: 'squareMeters' | 'acres' | 'hectares' | 'squareFeet' | 'squareKilometers'
 ): number => {
   // First convert to square meters
   let areaInSquareMeters: number;
-  
+
   switch (fromUnit) {
     case 'squareMeters':
       areaInSquareMeters = area;
@@ -268,7 +268,7 @@ export const convertArea = (
     default:
       areaInSquareMeters = area;
   }
-  
+
   // Then convert to target unit
   switch (toUnit) {
     case 'squareMeters':

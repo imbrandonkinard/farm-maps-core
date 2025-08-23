@@ -79,7 +79,24 @@ export interface MapViewProps {
     zoom: number;
   };
   mapStyle?: string;
-  onMapLoad?: (map: Map) => void;
+  onMapLoad?: (map: any) => void;
+  onFeatureCreate?: (features: any[]) => void;
+  onFeatureUpdate?: (features: any[]) => void;
+  onFeatureDelete?: (features: any[]) => void;
+  onFeatureSelect?: (feature: any) => void;
+  showNavigationControl?: boolean;
+  showAreaDisplay?: boolean;
+  showControlPanel?: boolean;
+  showFeatureSearch?: boolean;
+  customLayers?: MapLayer[];
+  drawingControls?: {
+    polygon: boolean;
+    point: boolean;
+    line: boolean;
+    trash: boolean;
+  };
+  defaultDrawingMode?: string;
+  enableDebugLogging?: boolean;
   style?: React.CSSProperties;
 }
 
