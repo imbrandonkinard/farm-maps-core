@@ -76,72 +76,7 @@ export const MapView: React.FC<MapViewProps> = ({
     }
   }, [customLayers]);
 
-  // Load default Ahupuaa layer if no custom layers
-  useEffect(() => {
-    if (customLayers.length === 0) {
-      // Load Ahupuaa layer
-      fetch('/Ahupuaa.geojson')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          const ahupuaaLayer: MapLayer = {
-            id: 'boundary_ahupuaa_layer',
-            name: 'Ahupuaa Boundaries',
-            data: data,
-            nameProperty: 'ahupuaa',
-            style: {
-              fill: {
-                color: '#088',
-                opacity: 0.2
-              },
-              line: {
-                color: '#088',
-                width: 2
-              }
-            }
-          };
-          setLayers([ahupuaaLayer]);
-          setActiveLayer(ahupuaaLayer);
 
-          // Load School Complex Areas layer after Ahupuaa is loaded
-          return fetch('/School_Complex_Areas.geojson');
-        })
-        .then(response => {
-          if (response && response.ok) {
-            return response.json();
-          }
-          return null;
-        })
-        .then(data => {
-          if (data) {
-            const schoolLayer: MapLayer = {
-              id: 'boundary_school_complex_layer',
-              name: 'School Complex Areas',
-              data: data,
-              nameProperty: 'school_complex',
-              style: {
-                fill: {
-                  color: '#f0f',
-                  opacity: 0.1
-                },
-                line: {
-                  color: '#f0f',
-                  width: 1
-                }
-              }
-            };
-            setLayers(prev => [...prev, schoolLayer]);
-          }
-        })
-        .catch(error => {
-          console.warn('Could not load default layers:', error);
-        });
-    }
-  }, [customLayers]);
 
   const handleFeatureSelection = useCallback((feature: any) => {
     if (onFeatureSelect) {
@@ -166,94 +101,10 @@ export const MapView: React.FC<MapViewProps> = ({
     }
   }, [dispatch]);
 
-  const handleMapClick = useCallback((event: any) => {
-    if (!mapLoaded) return;
+  
 
-    const map = mapRef.current?.getMap();
-    if (!map) return;
-
-    const features = map.queryRenderedFeatures(event.point);
-    const ahupuaaFeatures = features.filter((f: any) =>
-      f.layer.id === 'boundary_ahupuaa_layer' ||
-      f.layer.id === 'boundary_school_complex_layer'
-    );
-
-    if (ahupuaaFeatures.length > 0) {
-      const clickedFeatures = ahupuaaFeatures.map((f: any) => ({
-        id: f.id,
-        properties: f.properties,
-        geometry: f.geometry
-      }));
-
-      setPopupInfo({
-        features: clickedFeatures,
-        position: { x: event.point.x, y: event.point.y }
-      });
-    } else {
-      setPopupInfo(null);
-    }
-  }, [mapLoaded]);
-
-  const mapStyleWithLayers = useMemo(() => {
-    if (!layers.length) return mapStyle;
-
-    const sources: any = {};
-    const mapLayers: any = [];
-
-    // Add sources for each layer
-    layers.forEach((layer, index) => {
-      const sourceId = `source-${layer.id}`;
-      sources[sourceId] = {
-        type: 'geojson',
-        data: layer.data
-      };
-
-      // Add fill layer
-      mapLayers.push({
-        id: `fill-${layer.id}`,
-        type: 'fill',
-        source: sourceId,
-        paint: {
-          'fill-color': layer.style?.fill?.color || '#088',
-          'fill-opacity': layer.style?.fill?.opacity || 0.2
-        }
-      });
-
-      // Add line layer
-      mapLayers.push({
-        id: `line-${layer.id}`,
-        type: 'line',
-        source: sourceId,
-        paint: {
-          'line-color': layer.style?.line?.color || '#088',
-          'line-width': layer.style?.line?.width || 2
-        }
-      });
-    });
-
-    return {
-      version: 8 as const,
-      sources: {
-        ...sources,
-        'osm': {
-          type: 'raster',
-          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-          tileSize: 256,
-          attribution: '© OpenStreetMap contributors'
-        }
-      },
-      layers: [
-        {
-          id: 'osm-tiles',
-          type: 'raster',
-          source: 'osm',
-          minzoom: 0,
-          maxzoom: 22
-        },
-        ...mapLayers
-      ]
-    };
-  }, [layers, mapStyle]);
+  // Use simple static map style
+  const finalMapStyle = mapStyle;
 
   return (
     <div style={{
@@ -296,14 +147,13 @@ export const MapView: React.FC<MapViewProps> = ({
         <ReactMapGL
           ref={mapRef}
           initialViewState={initialViewState}
-          mapStyle={mapStyleWithLayers}
+          mapStyle={finalMapStyle}
           mapLib={import('maplibre-gl')}
           dragPan={true}
           dragRotate={false}
           touchPitch={false}
           doubleClickZoom={false}
           style={{ width: '100%', height: '100%' }}
-          onClick={handleMapClick}
           onLoad={(event) => {
             const map = event.target;
             setMapLoaded(true);
@@ -432,22 +282,7 @@ export const MapView: React.FC<MapViewProps> = ({
         </div>
       )}
 
-      {showFeatureSearch && activeLayer && (
-        <div style={{
-          position: 'absolute',
-          top: 10,
-          left: 10,
-          zIndex: 1,
-          width: '250px'
-        }}>
-          <FeatureSearchPanel
-            layers={layers}
-            activeLayer={activeLayer}
-            onLayerChange={setActiveLayer}
-            onFeatureSelect={handleFeatureSelection}
-          />
-        </div>
-      )}
+
     </div>
   );
 };
