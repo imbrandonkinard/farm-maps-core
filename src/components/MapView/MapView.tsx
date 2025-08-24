@@ -45,7 +45,8 @@ export const MapView: React.FC<MapViewProps> = ({
   enableDebugLogging = false,
   customPolygonPopupContent,
   showPolygonPopup = true,
-  onNavigate
+  onNavigate,
+  onLayerUpload
 }) => {
   const dispatch = useDispatch();
   const features = useSelector(selectFeatures);
@@ -99,6 +100,30 @@ export const MapView: React.FC<MapViewProps> = ({
       console.log('Features details:', features.map(f => ({ id: f.id, name: f.properties?.name, type: f.geometry?.type })));
     }
   }, [features, enableDebugLogging]);
+
+  // Handle layer uploads
+  const handleLayerUpload = useCallback((uploadedLayer: MapLayer) => {
+    if (enableDebugLogging) {
+      console.log('Handling layer upload:', uploadedLayer);
+    }
+    
+    // Add the uploaded layer to the layers array
+    setLayers(prevLayers => {
+      const newLayers = [...prevLayers, uploadedLayer];
+      if (enableDebugLogging) {
+        console.log('Updated layers:', newLayers);
+      }
+      return newLayers;
+    });
+    
+    // Set the uploaded layer as active
+    setActiveLayer(uploadedLayer);
+    
+    // Call the callback if provided
+    if (onLayerUpload) {
+      onLayerUpload(uploadedLayer);
+    }
+  }, [onLayerUpload, enableDebugLogging]);
 
   // Load layer data
   useEffect(() => {
@@ -720,6 +745,7 @@ export const MapView: React.FC<MapViewProps> = ({
           activeLayer={activeLayer}
           onLayerChange={setActiveLayer}
           onFeatureSelect={handleFeatureSelect}
+          onLayerUpload={handleLayerUpload}
         />
       )}
       <div style={{

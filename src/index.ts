@@ -1,10 +1,11 @@
-// Core Components
-export { default as DrawControl } from './components/DrawControl/DrawControl';
+// Components
 export { MapView } from './components/MapView/MapView';
+export { default as DrawControl } from './components/DrawControl/DrawControl';
 export { ControlPanel } from './components/ControlPanel/ControlPanel';
 export { FeatureSearchPanel } from './components/FeatureSearchPanel/FeatureSearchPanel';
 export { FeatureSelectPopup } from './components/FeatureSelectPopup/FeatureSelectPopup';
 export { PolygonPopup } from './components/PolygonPopup';
+export { UploadGISLayer } from './components/UploadGISLayer/UploadGISLayer';
 
 // Hooks - Removed due to React dependency conflicts
 // export { useMapFeatures } from './hooks/useMapFeatures';

@@ -102,6 +102,7 @@ export interface MapViewProps {
   customPolygonPopupContent?: React.ReactNode;
   showPolygonPopup?: boolean;
   onNavigate?: (route: string, featureId: string) => void;
+  onLayerUpload?: (layer: MapLayer) => void;
 }
 
 // Control Panel Types
@@ -116,7 +117,8 @@ export interface FeatureSearchPanelProps {
   layers: MapLayer[];
   activeLayer: MapLayer | null;
   onLayerChange: (layer: MapLayer | null) => void;
-  onFeatureSelect: (feature: GeoJSONFeature) => void;
+  onFeatureSelect: (feature: any) => void;
+  onLayerUpload?: (layer: MapLayer) => void;
 }
 
 // Feature Select Popup Types

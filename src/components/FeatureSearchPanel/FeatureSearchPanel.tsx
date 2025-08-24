@@ -6,12 +6,14 @@ import {
   searchAcrossLayers,
   getSearchSuggestions
 } from '../../utils/layerUtils';
+import { UploadGISLayer } from '../UploadGISLayer/UploadGISLayer';
 
 export const FeatureSearchPanel: React.FC<FeatureSearchPanelProps> = (props) => {
-  const { layers, activeLayer, onLayerChange, onFeatureSelect } = props;
+  const { layers, activeLayer, onLayerChange, onFeatureSelect, onLayerUpload } = props;
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<'layers' | 'features' | 'all'>('features');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   // Advanced search across all layers and features
   const globalSearchResults = useMemo(() => {
@@ -219,6 +221,41 @@ export const FeatureSearchPanel: React.FC<FeatureSearchPanelProps> = (props) => 
             </button>
           </div>
         </div>
+
+        {/* Upload GIS Layer Button */}
+        {onLayerUpload && (
+          <div style={{ marginBottom: '15px' }}>
+            <button
+              type="button"
+              onClick={() => setShowUploadModal(true)}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                backgroundColor: '#28a745',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#218838';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#28a745';
+              }}
+            >
+              <span style={{ fontSize: '16px' }}>📁</span>
+              Upload GIS Layer
+            </button>
+          </div>
+        )}
 
         {/* Search Input - Enhanced and More Prominent */}
         <div style={{ marginBottom: '15px', position: 'relative' }}>
@@ -600,6 +637,18 @@ export const FeatureSearchPanel: React.FC<FeatureSearchPanelProps> = (props) => 
           </div>
         )}
       </div>
+
+      {/* Upload GIS Layer Modal */}
+      {onLayerUpload && (
+        <UploadGISLayer
+          isOpen={showUploadModal}
+          onClose={() => setShowUploadModal(false)}
+          onUpload={(layer) => {
+            onLayerUpload(layer);
+            setShowUploadModal(false);
+          }}
+        />
+      )}
     </div>
   );
 };
