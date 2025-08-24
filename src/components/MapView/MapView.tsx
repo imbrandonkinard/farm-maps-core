@@ -681,6 +681,19 @@ export const MapView: React.FC<MapViewProps> = ({
   const handleFeatureSelect = useCallback((feature: any) => {
     if (!feature.geometry || !feature.geometry.coordinates) return;
 
+    // Handle different geometry types
+    if (feature.geometry.type === "Point") {
+      // For points, zoom to the point with some padding
+      const [lng, lat] = feature.geometry.coordinates;
+      mapRef.current?.getMap().flyTo({
+        center: [lng, lat],
+        zoom: 14,
+        duration: 1000
+      });
+      return;
+    }
+
+    // For polygons (existing logic)
     // For MultiPolygon, use the first polygon
     const coordinates = feature.geometry.type === 'MultiPolygon'
       ? feature.geometry.coordinates[0][0]
