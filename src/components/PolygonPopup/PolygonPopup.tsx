@@ -112,7 +112,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
             ×
           </button>
         </div>
-        
+
         {customContent || (showDefaultContent ? defaultContent : null)}
       </div>
     </div>
