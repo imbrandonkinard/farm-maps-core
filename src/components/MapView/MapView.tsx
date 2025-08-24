@@ -369,6 +369,9 @@ export const MapView: React.FC<MapViewProps> = ({
           }
           const newLayers = [...prevLayers, wicLocationsLayer];
           
+          // Set WIC layer as active when it's loaded
+          setActiveLayer(wicLocationsLayer);
+
           // Add the new layer to the map immediately
           const map = mapRef.current?.getMap();
           if (map && map.isStyleLoaded()) {
@@ -452,6 +455,10 @@ export const MapView: React.FC<MapViewProps> = ({
 
               if (enableDebugLogging) {
                 console.log('WIC layer added to map:', wicLocationsLayer.id);
+                console.log('WIC layer data:', wicLocationsLayer.data);
+                console.log('WIC layer features count:', wicLocationsLayer.data.features.length);
+                console.log('WIC layer has points:', hasPoints);
+                console.log('WIC layer has polygons:', hasPolygons);
               }
             } catch (error) {
               if (enableDebugLogging) {
@@ -459,7 +466,7 @@ export const MapView: React.FC<MapViewProps> = ({
               }
             }
           }
-          
+
           return newLayers;
         });
       })
@@ -586,11 +593,11 @@ export const MapView: React.FC<MapViewProps> = ({
         if (hasPolygons) {
           layerIds.push(`${layer.id}_fill_${index}`);
         }
-        
+
         if (enableDebugLogging) {
           console.log(`Layer ${layer.id}: hasPoints=${hasPoints}, hasPolygons=${hasPolygons}, layerIds=`, layerIds);
         }
-        
+
         return layerIds;
       });
 
@@ -1209,21 +1216,22 @@ export const MapView: React.FC<MapViewProps> = ({
     if (!map.getStyle()) return;
 
     // Hide all layers first
-    layers.forEach((layer, index) => {
+    layers.forEach((layer) => {
       try {
-        const fillLayerId = `${layer.id}_fill_${index}`;
-        const lineLayerId = `${layer.id}_line_${index}`;
-        const circleLayerId = `${layer.id}_circle_${index}`;
+        // Find all layers that belong to this layer by checking the map
+        const mapLayers = map.getStyle().layers || [];
+        const layerLayers = mapLayers.filter((mapLayer: any) => 
+          mapLayer.id.startsWith(layer.id + '_')
+        );
 
-        // Check if layers exist before trying to modify them
-        if (map.getLayer(fillLayerId)) {
-          map.setLayoutProperty(fillLayerId, 'visibility', 'none');
-        }
-        if (map.getLayer(lineLayerId)) {
-          map.setLayoutProperty(lineLayerId, 'visibility', 'none');
-        }
-        if (map.getLayer(circleLayerId)) {
-          map.setLayoutProperty(circleLayerId, 'visibility', 'none');
+        layerLayers.forEach((mapLayer: any) => {
+          if (map.getLayer(mapLayer.id)) {
+            map.setLayoutProperty(mapLayer.id, 'visibility', 'none');
+          }
+        });
+
+        if (enableDebugLogging) {
+          console.log(`Hidden ${layerLayers.length} layers for ${layer.id}:`, layerLayers.map((l: any) => l.id));
         }
       } catch (error) {
         // Layer might not exist yet, ignore error
@@ -1235,26 +1243,25 @@ export const MapView: React.FC<MapViewProps> = ({
 
     // Show active layer
     if (activeLayer) {
-      const activeIndex = layers.findIndex(layer => layer.id === activeLayer.id);
-      if (activeIndex !== -1) {
-        try {
-          const fillLayerId = `${activeLayer.id}_fill_${activeIndex}`;
-          const lineLayerId = `${activeLayer.id}_line_${activeIndex}`;
-          const circleLayerId = `${activeLayer.id}_circle_${activeIndex}`;
+      try {
+                 // Find all layers that belong to the active layer
+         const mapLayers = map.getStyle().layers || [];
+         const activeLayerLayers = mapLayers.filter((mapLayer: any) => 
+           mapLayer.id.startsWith(activeLayer.id + '_')
+         );
 
-          if (map.getLayer(fillLayerId)) {
-            map.setLayoutProperty(fillLayerId, 'visibility', 'visible');
-          }
-          if (map.getLayer(lineLayerId)) {
-            map.setLayoutProperty(lineLayerId, 'visibility', 'visible');
-          }
-          if (map.getLayer(circleLayerId)) {
-            map.setLayoutProperty(circleLayerId, 'visibility', 'visible');
-          }
-        } catch (error) {
-          if (enableDebugLogging) {
-            console.log('Active layer not ready yet:', activeLayer.id);
-          }
+                 activeLayerLayers.forEach((mapLayer: any) => {
+           if (map.getLayer(mapLayer.id)) {
+             map.setLayoutProperty(mapLayer.id, 'visibility', 'visible');
+           }
+         });
+
+         if (enableDebugLogging) {
+           console.log(`Showing ${activeLayerLayers.length} layers for active layer ${activeLayer.id}:`, activeLayerLayers.map((l: any) => l.id));
+         }
+      } catch (error) {
+        if (enableDebugLogging) {
+          console.log('Active layer not ready yet:', activeLayer.id);
         }
       }
     }
