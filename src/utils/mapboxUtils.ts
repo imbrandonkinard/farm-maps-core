@@ -198,8 +198,24 @@ export const createMapboxDraw = (options: any = {}) => {
  * @returns True if map is ready
  */
 export const isMapReadyForDrawing = (map: any): boolean => {
-  return map &&
-    typeof map.isStyleLoaded === 'function' &&
-    map.isStyleLoaded() &&
-    typeof map.addControl === 'function';
+  if (!map) {
+    return false;
+  }
+
+  if (typeof map.isStyleLoaded !== 'function' ||
+    typeof map.addControl !== 'function') {
+    return false;
+  }
+
+  if (!map.isStyleLoaded()) {
+    return false;
+  }
+
+  // Check if map has a valid style
+  const style = map.getStyle();
+  if (!style || !style.layers) {
+    return false;
+  }
+
+  return true;
 };

@@ -17,6 +17,12 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   const dispatch = useDispatch();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [localPolygons, setLocalPolygons] = useState(polygons);
+
+  // Update local polygons when props change
+  React.useEffect(() => {
+    setLocalPolygons(polygons);
+  }, [polygons]);
 
   const calculateArea = (polygon: any) => {
     return calculateAreaInAcres(polygon).toFixed(2);
@@ -28,6 +34,20 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   };
 
   const handleSaveName = (polygon: any) => {
+    // Update local state immediately for responsive UI
+    const updatedPolygon = {
+      ...polygon,
+      properties: {
+        ...polygon.properties,
+        name: editingName
+      }
+    };
+
+    setLocalPolygons(prev =>
+      prev.map(p => p.id === polygon.id ? updatedPolygon : p)
+    );
+
+    // Dispatch Redux action
     dispatch(updateFeatureProperties({
       id: polygon.id,
       properties: {
@@ -36,15 +56,10 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       }
     }));
 
+    // Call onDelete with save type for parent component handling
     onDelete({
       type: 'save',
-      features: [{
-        ...polygon,
-        properties: {
-          ...polygon.properties,
-          name: editingName
-        }
-      }]
+      features: [updatedPolygon]
     });
 
     setEditingId(null);
@@ -60,7 +75,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
   return (
     <div>
-      {polygons.map(polygon => (
+      {localPolygons.map(polygon => (
         <div
           key={polygon.id}
           style={{

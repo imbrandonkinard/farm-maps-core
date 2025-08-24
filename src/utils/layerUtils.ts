@@ -67,6 +67,196 @@ export const getLayerFeatureNames = (layer: MapLayer): Array<{ name: string; id:
 };
 
 /**
+ * Advanced search across multiple layers
+ * @param layers - Array of layers to search
+ * @param searchQuery - Search query string
+ * @param searchOptions - Search configuration options
+ * @returns Search results with layer context
+ */
+export const searchAcrossLayers = (
+  layers: MapLayer[],
+  searchQuery: string,
+  searchOptions: {
+    includeLayerNames?: boolean;
+    includeFeatureNames?: boolean;
+    includeFeatureIds?: boolean;
+    fuzzyMatch?: boolean;
+    caseSensitive?: boolean;
+    maxResults?: number;
+  } = {}
+) => {
+  const {
+    includeLayerNames = true,
+    includeFeatureNames = true,
+    includeFeatureIds = true,
+    fuzzyMatch = false,
+    caseSensitive = false,
+    maxResults = 100
+  } = searchOptions;
+
+  if (!searchQuery.trim()) {
+    return [];
+  }
+
+  const query = caseSensitive ? searchQuery : searchQuery.toLowerCase();
+  const results: Array<{
+    type: 'layer' | 'feature';
+    layer: MapLayer;
+    feature?: GeoJSONFeature;
+    name: string;
+    id: string;
+    relevance: number;
+    matchType: 'exact' | 'contains' | 'fuzzy';
+  }> = [];
+
+  // Search through layers
+  if (includeLayerNames) {
+    layers.forEach(layer => {
+      const layerName = caseSensitive ? layer.name : layer.name.toLowerCase();
+      const layerId = caseSensitive ? layer.id : layer.id.toLowerCase();
+
+      let matchType: 'exact' | 'contains' | 'fuzzy' = 'contains';
+      let relevance = 0;
+
+      if (layerName === query || layerId === query) {
+        matchType = 'exact';
+        relevance = 100;
+      } else if (layerName.includes(query) || layerId.includes(query)) {
+        matchType = 'contains';
+        relevance = 50;
+      } else if (fuzzyMatch && (layerName.includes(query.slice(0, 3)) || layerId.includes(query.slice(0, 3)))) {
+        matchType = 'fuzzy';
+        relevance = 25;
+      }
+
+      if (relevance > 0) {
+        results.push({
+          type: 'layer',
+          layer,
+          name: layer.name,
+          id: layer.id,
+          relevance,
+          matchType
+        });
+      }
+    });
+  }
+
+  // Search through features
+  if (includeFeatureNames || includeFeatureIds) {
+    layers.forEach(layer => {
+      if (!layer.data?.features) return;
+
+      layer.data.features.forEach(feature => {
+        const featureName = feature.properties?.[layer.nameProperty] || 'Unnamed Feature';
+        const featureId = feature.properties?.objectid || feature.properties?.id || feature.id || '';
+
+        let matchType: 'exact' | 'contains' | 'fuzzy' = 'contains';
+        let relevance = 0;
+        let matched = false;
+
+        // Check feature names
+        if (includeFeatureNames) {
+          const name = caseSensitive ? featureName : featureName.toLowerCase();
+          if (name === query) {
+            matchType = 'exact';
+            relevance = 90;
+            matched = true;
+          } else if (name.includes(query)) {
+            matchType = 'contains';
+            relevance = 40;
+            matched = true;
+          } else if (fuzzyMatch && name.includes(query.slice(0, 3))) {
+            matchType = 'fuzzy';
+            relevance = 20;
+            matched = true;
+          }
+        }
+
+        // Check feature IDs
+        if (includeFeatureIds && !matched) {
+          const id = caseSensitive ? featureId : featureId.toLowerCase();
+          if (id === query) {
+            matchType = 'exact';
+            relevance = 80;
+            matched = true;
+          } else if (id.includes(query)) {
+            matchType = 'contains';
+            relevance = 30;
+            matched = true;
+          } else if (fuzzyMatch && id.includes(query.slice(0, 3))) {
+            matchType = 'fuzzy';
+            relevance = 15;
+            matched = true;
+          }
+        }
+
+        if (matched) {
+          results.push({
+            type: 'feature',
+            layer,
+            feature,
+            name: featureName,
+            id: featureId,
+            relevance,
+            matchType
+          });
+        }
+      });
+    });
+  }
+
+  // Sort by relevance and limit results
+  return results
+    .sort((a, b) => b.relevance - a.relevance)
+    .slice(0, maxResults);
+};
+
+/**
+ * Get search suggestions based on partial input
+ * @param layers - Array of layers to search
+ * @param partialQuery - Partial search query
+ * @param maxSuggestions - Maximum number of suggestions to return
+ * @returns Array of search suggestions
+ */
+export const getSearchSuggestions = (
+  layers: MapLayer[],
+  partialQuery: string,
+  maxSuggestions: number = 10
+): string[] => {
+  if (!partialQuery.trim() || partialQuery.length < 2) {
+    return [];
+  }
+
+  const suggestions = new Set<string>();
+  const query = partialQuery.toLowerCase();
+
+  // Add layer name suggestions
+  layers.forEach(layer => {
+    if (layer.name.toLowerCase().includes(query)) {
+      suggestions.add(layer.name);
+    }
+    if (layer.id.toLowerCase().includes(query)) {
+      suggestions.add(layer.id);
+    }
+  });
+
+  // Add feature name suggestions
+  layers.forEach(layer => {
+    if (!layer.data?.features) return;
+
+    layer.data.features.forEach(feature => {
+      const featureName = feature.properties?.[layer.nameProperty];
+      if (featureName && featureName.toLowerCase().includes(query)) {
+        suggestions.add(featureName);
+      }
+    });
+  });
+
+  return Array.from(suggestions).slice(0, maxSuggestions);
+};
+
+/**
  * Validate layer data structure
  * @param layer - The map layer to validate
  * @returns Validation result
