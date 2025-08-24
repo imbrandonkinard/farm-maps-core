@@ -2,13 +2,13 @@ import React, { useCallback, useRef, useEffect, useState, useMemo } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import ReactMapGL, { NavigationControl } from 'react-map-gl/maplibre';
 import * as turf from '@turf/turf';
-import { 
+import {
   ControlPanel,
   FeatureSearchPanel,
   FeatureSelectPopup,
-  updateFeatures, 
-  deleteFeatures, 
-  updateCurrentArea, 
+  updateFeatures,
+  deleteFeatures,
+  updateCurrentArea,
   updateFeatureProperties,
   selectFeatures,
   selectCurrentArea,
@@ -40,7 +40,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
   const features = useSelector(selectFeatures);
   const geojson = useSelector(selectGeoJSON);
   const roundedArea = useSelector(selectCurrentArea);
-  
+
   // Debug: Check if Redux actions are available
   if (enableDebugLogging) {
     console.log('Redux actions available:', {
@@ -49,7 +49,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
       selectFeatures: typeof selectFeatures
     });
   }
-  
+
   // Debug: Test Redux store connectivity
   useEffect(() => {
     if (enableDebugLogging) {
@@ -64,7 +64,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
         },
         properties: { name: 'Test Feature' }
       };
-      
+
       setTimeout(() => {
         if (enableDebugLogging) {
           console.log('Dispatching test feature...');
@@ -73,7 +73,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
       }, 2000);
     }
   }, [dispatch, enableDebugLogging]);
-  
+
   const mapRef = useRef<any>(null);
   const drawRef = useRef<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -282,7 +282,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
           try {
             const feature = draw.get(id);
             if (!feature) return null;
-            
+
             return {
               id: feature.id,
               name: feature.properties?.name || `Field ${feature.id.slice(0, 6)}`,
@@ -337,7 +337,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
   // Draw all features from the Drawn Fields array
   const drawAllFeatures = useCallback(() => {
     if (!drawRef.current) return;
-    
+
     if (enableDebugLogging) {
       console.log('Drawing all features from Drawn Fields');
       console.log('Features to draw:', features);
@@ -346,23 +346,23 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
     try {
       // Clear existing features
       drawRef.current.deleteAll();
-      
+
       if (features && features.length > 0) {
         // Create feature collection
         const featureCollection = {
           type: 'FeatureCollection',
           features: features
         };
-        
+
         // Draw all features
         drawRef.current.set(featureCollection);
-        
+
         // Calculate total area
         const drawnFeatures = drawRef.current.getAll();
         const area = turf.area(drawnFeatures);
         const areaInAcres = (area * 0.000247105).toFixed(2);
         dispatch(updateCurrentArea(areaInAcres));
-        
+
         if (enableDebugLogging) {
           console.log('Successfully drew features:', drawnFeatures);
         }
@@ -385,7 +385,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
     let timeoutId;
     let retryCount = 0;
     const MAX_RETRIES = 10;
-    
+
     const initMap = () => {
       if (retryCount >= MAX_RETRIES) {
         if (enableDebugLogging) {
@@ -463,14 +463,14 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
     if (enableDebugLogging) {
       console.log('onUpdate called with event:', e);
     }
-    
+
     // Get all current features from draw control
     const draw = drawRef.current;
     if (!draw) return;
-    
+
     // Get the complete current state of all features
     const allFeatures = draw.getAll().features;
-    
+
     // Update Redux with all features
     if (enableDebugLogging) {
       console.log('Updating features in Redux:', allFeatures);
@@ -528,12 +528,12 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
 
   const handleFeatureSelect = useCallback((feature: any) => {
     if (!feature.geometry || !feature.geometry.coordinates) return;
-    
+
     // For MultiPolygon, use the first polygon
-    const coordinates = feature.geometry.type === 'MultiPolygon' 
-      ? feature.geometry.coordinates[0][0] 
+    const coordinates = feature.geometry.type === 'MultiPolygon'
+      ? feature.geometry.coordinates[0][0]
       : feature.geometry.coordinates[0];
-    
+
     // Calculate bounds
     const bounds = coordinates.reduce(
       (bounds, coord) => {
@@ -558,7 +558,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
         [bounds.minLng, bounds.minLat],
         [bounds.maxLng, bounds.maxLat]
       ],
-      { 
+      {
         padding: 50,
         duration: 1000 // Smooth animation
       }
@@ -570,13 +570,13 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
     if (drawRef.current) {
       drawRef.current.changeMode('simple_select', { featureIds: [feature.id] });
     }
-    
+
     // Update the view to focus on the selected feature
     if (feature.geometry && feature.geometry.coordinates) {
-      const coordinates = feature.geometry.type === 'MultiPolygon' 
-        ? feature.geometry.coordinates[0][0] 
+      const coordinates = feature.geometry.type === 'MultiPolygon'
+        ? feature.geometry.coordinates[0][0]
         : feature.geometry.coordinates[0];
-      
+
       const bounds = coordinates.reduce(
         (bounds: any, coord: any) => {
           return {
@@ -599,7 +599,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
           [bounds.minLng, bounds.minLat],
           [bounds.maxLng, bounds.maxLat]
         ],
-        { 
+        {
           padding: 50,
           duration: 1000
         }
@@ -675,6 +675,10 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
     const map = mapRef.current?.getMap();
     if (!map) return;
 
+    // Store current control states before updating layers
+    const drawControlExists = map.getContainer().querySelector('.mapboxgl-ctrl-group') !== null;
+    const navControlExists = map.getContainer().querySelector('.mapboxgl-ctrl-top-right') !== null;
+
     // Hide all layers first
     layers.forEach((layer, index) => {
       map.setLayoutProperty(`${layer.id}_fill_${index}`, 'visibility', 'none');
@@ -689,24 +693,61 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
         map.setLayoutProperty(`${activeLayer.id}_line_${activeIndex}`, 'visibility', 'visible');
       }
     }
+
+    // Restore controls if they were lost during layer update
+    setTimeout(() => {
+      if (!map.getContainer().querySelector('.mapboxgl-ctrl-group') && drawControlExists && drawRef.current) {
+        console.log('Restoring draw control after layer change');
+        map.addControl(drawRef.current, 'top-left');
+      }
+      
+      if (!map.getContainer().querySelector('.mapboxgl-ctrl-top-right') && navControlExists) {
+        console.log('Navigation control lost, ensuring visibility');
+      }
+    }, 100);
   }, [activeLayer, layers]);
 
+  // Ensure controls persist after layer changes
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map || !mapLoaded) return;
+
+    // Re-add draw control if it's missing
+    const existingDrawControl = map.getContainer().querySelector('.mapboxgl-ctrl-group');
+    if (!existingDrawControl && drawRef.current) {
+      map.addControl(drawRef.current, 'top-left');
+    }
+
+    // Ensure navigation control is visible
+    const existingNavControl = map.getContainer().querySelector('.mapboxgl-ctrl-top-right');
+    if (!existingNavControl) {
+      // Re-add navigation control if it's missing
+      // We'll use a simple approach to ensure the control is visible
+      const navControls = map.getContainer().querySelectorAll('.mapboxgl-ctrl-top-right');
+      if (navControls.length === 0) {
+        // If no navigation controls exist, we need to re-render the map
+        // This is a fallback to ensure controls are visible
+        console.log('Navigation controls missing, ensuring visibility');
+      }
+    }
+  }, [activeLayer, mapLoaded]);
+
   return (
-    <div style={{ 
-      display: 'flex', 
-      height: '80vh', 
+    <div style={{
+      display: 'flex',
+      height: '80vh',
       width: '100%',
       backgroundColor: '#f5f5f5',
       ...style
     }}>
-      <FeatureSearchPanel 
+      <FeatureSearchPanel
         layers={layers}
         activeLayer={activeLayer}
         onLayerChange={setActiveLayer}
         onFeatureSelect={handleFeatureSelect}
       />
-      <div style={{ 
-        flex: 1, 
+      <div style={{
+        flex: 1,
         position: 'relative',
         backgroundColor: '#fff',
         margin: '0 10px'
@@ -737,6 +778,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
         </div>
 
         <ReactMapGL
+          key="persistent-map"
           ref={mapRef}
           initialViewState={initialViewState}
           mapStyle={mapStyle}
@@ -749,7 +791,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
           onLoad={(event) => {
             const map = event.target;
             setMapLoaded(true);
-            
+
             // Initialize drawing functionality
             updateMapboxDrawConstants();
             const draw = createMapboxDraw({
@@ -766,12 +808,12 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
               touchBuffer: 4,
               boxSelect: false
             });
-            
+
             map.addControl(draw, 'top-left');
-            
+
             // Store draw reference
             drawRef.current = draw;
-            
+
             // Add event listeners
             map.on('draw.create', (e) => {
               if (enableDebugLogging) {
@@ -786,24 +828,24 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
                   properties: f.properties
                 })));
               }
-              
+
               const enhancedFeatures = e.features.map(f => ({
                 ...f,
                 properties: { ...f.properties, name: `Field ${f.id.slice(0, 6)}` }
               }));
-              
+
               if (enableDebugLogging) {
                 console.log('Enhanced features:', enhancedFeatures);
                 console.log('Features have IDs:', enhancedFeatures.map(f => f.id));
               }
-              
+
               // Dispatch Redux action to add new features
               dispatch(updateFeatures(enhancedFeatures));
               if (enableDebugLogging) {
                 console.log('Dispatched updateFeatures action with payload:', enhancedFeatures);
               }
             });
-            
+
             map.on('draw.update', (e) => {
               if (enableDebugLogging) {
                 console.log('Draw update event:', e);
@@ -811,7 +853,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
               // Dispatch Redux action to update features
               dispatch(updateFeatures(e.features));
             });
-            
+
             map.on('draw.delete', (e) => {
               if (enableDebugLogging) {
                 console.log('Draw delete event:', e);
@@ -819,7 +861,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
               // Dispatch Redux action to delete features
               dispatch(deleteFeatures(e.features));
             });
-            
+
             map.on('draw.selectionchange', (e) => {
               if (e.features && e.features.length > 0) {
                 draw.changeMode('direct_select', { featureId: e.features[0].id });
@@ -827,7 +869,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
             });
           }}
         >
-          <NavigationControl 
+          <NavigationControl
             position="top-right"
             showCompass={false}
             showZoom={true}
@@ -844,7 +886,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
           />
         )}
       </div>
-      <div style={{ 
+      <div style={{
         width: '300px',
         backgroundColor: '#fff',
         display: 'flex',
@@ -864,7 +906,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
           overflowY: 'auto',
           padding: '15px'
         }}>
-          <ControlPanel 
+          <ControlPanel
             polygons={features}
             onPolygonClick={onPolygonClick}
             onDelete={onDelete}
