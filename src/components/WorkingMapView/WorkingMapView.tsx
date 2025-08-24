@@ -700,7 +700,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
         console.log('Restoring draw control after layer change');
         map.addControl(drawRef.current, 'top-left');
       }
-      
+
       if (!map.getContainer().querySelector('.mapboxgl-ctrl-top-right') && navControlExists) {
         console.log('Navigation control lost, ensuring visibility');
       }
@@ -712,25 +712,98 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
     const map = mapRef.current?.getMap();
     if (!map || !mapLoaded) return;
 
-    // Re-add draw control if it's missing
-    const existingDrawControl = map.getContainer().querySelector('.mapboxgl-ctrl-group');
-    if (!existingDrawControl && drawRef.current) {
-      map.addControl(drawRef.current, 'top-left');
-    }
+    // Force restore all controls after layer changes
+    const restoreControls = () => {
+      // Remove any existing controls first to avoid duplicates
+      const existingDrawControls = map.getContainer().querySelectorAll('.mapboxgl-ctrl-group');
+      existingDrawControls.forEach((control: any) => control.remove());
+      
+      const existingNavControls = map.getContainer().querySelectorAll('.mapboxgl-ctrl-top-right');
+      existingNavControls.forEach((control: any) => control.remove());
 
-    // Ensure navigation control is visible
-    const existingNavControl = map.getContainer().querySelector('.mapboxgl-ctrl-top-right');
-    if (!existingNavControl) {
-      // Re-add navigation control if it's missing
-      // We'll use a simple approach to ensure the control is visible
-      const navControls = map.getContainer().querySelectorAll('.mapboxgl-ctrl-top-right');
-      if (navControls.length === 0) {
-        // If no navigation controls exist, we need to re-render the map
-        // This is a fallback to ensure controls are visible
-        console.log('Navigation controls missing, ensuring visibility');
+      // Re-add draw control
+      if (drawRef.current) {
+        map.addControl(drawRef.current, 'top-left');
+        console.log('Draw control restored');
       }
-    }
+
+      // Re-add navigation control using a different approach
+      try {
+        // Create a simple navigation control manually
+        const navContainer = document.createElement('div');
+        navContainer.className = 'mapboxgl-ctrl mapboxgl-ctrl-group mapboxgl-ctrl-top-right';
+        navContainer.style.position = 'absolute';
+        navContainer.style.top = '10px';
+        navContainer.style.right = '10px';
+        
+        // Add zoom in button
+        const zoomInBtn = document.createElement('button');
+        zoomInBtn.className = 'mapboxgl-ctrl-zoom-in';
+        zoomInBtn.innerHTML = '+';
+        zoomInBtn.onclick = () => map.zoomIn();
+        navContainer.appendChild(zoomInBtn);
+        
+        // Add zoom out button
+        const zoomOutBtn = document.createElement('button');
+        zoomOutBtn.className = 'mapboxgl-ctrl-zoom-out';
+        zoomOutBtn.innerHTML = '−';
+        zoomOutBtn.onclick = () => map.zoomOut();
+        navContainer.appendChild(zoomOutBtn);
+        
+        map.getContainer().appendChild(navContainer);
+        console.log('Navigation control restored manually');
+      } catch (error) {
+        console.log('Error restoring navigation control:', error);
+      }
+    };
+
+    // Restore controls after a short delay to ensure layer changes are complete
+    setTimeout(restoreControls, 200);
   }, [activeLayer, mapLoaded]);
+
+  // Continuous control monitoring - check every second if controls are missing
+  useEffect(() => {
+    if (!mapLoaded) return;
+
+    const interval = setInterval(() => {
+      const map = mapRef.current?.getMap();
+      if (!map) return;
+
+      const drawControlExists = map.getContainer().querySelector('.mapboxgl-ctrl-group') !== null;
+      const navControlExists = map.getContainer().querySelector('.mapboxgl-ctrl-top-right') !== null;
+
+      if (!drawControlExists && drawRef.current) {
+        console.log('Draw control missing, restoring...');
+        map.addControl(drawRef.current, 'top-left');
+      }
+
+      if (!navControlExists) {
+        console.log('Navigation control missing, restoring...');
+        // Create simple navigation control
+        const navContainer = document.createElement('div');
+        navContainer.className = 'mapboxgl-ctrl mapboxgl-ctrl-group mapboxgl-ctrl-top-right';
+        navContainer.style.position = 'absolute';
+        navContainer.style.top = '10px';
+        navContainer.style.right = '10px';
+        
+        const zoomInBtn = document.createElement('button');
+        zoomInBtn.className = 'mapboxgl-ctrl-zoom-in';
+        zoomInBtn.innerHTML = '+';
+        zoomInBtn.onclick = () => map.zoomIn();
+        navContainer.appendChild(zoomInBtn);
+        
+        const zoomOutBtn = document.createElement('button');
+        zoomOutBtn.className = 'mapboxgl-ctrl-zoom-out';
+        zoomOutBtn.innerHTML = '−';
+        zoomOutBtn.onclick = () => map.zoomOut();
+        navContainer.appendChild(zoomOutBtn);
+        
+        map.getContainer().appendChild(navContainer);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [mapLoaded]);
 
   return (
     <div style={{
