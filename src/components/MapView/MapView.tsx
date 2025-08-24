@@ -367,7 +367,100 @@ export const MapView: React.FC<MapViewProps> = ({
           if (exists) {
             return prevLayers;
           }
-          return [...prevLayers, wicLocationsLayer];
+          const newLayers = [...prevLayers, wicLocationsLayer];
+          
+          // Add the new layer to the map immediately
+          const map = mapRef.current?.getMap();
+          if (map && map.isStyleLoaded()) {
+            try {
+              // Add source if it doesn't exist
+              if (!map.getSource(wicLocationsLayer.id)) {
+                map.addSource(wicLocationsLayer.id, {
+                  type: 'geojson',
+                  data: wicLocationsLayer.data
+                });
+              }
+
+              // Check geometry types
+              const hasPoints = wicLocationsLayer.data.features.some((f: any) =>
+                f.geometry.type === 'Point' || f.geometry.type === 'MultiPoint'
+              );
+              const hasPolygons = wicLocationsLayer.data.features.some((f: any) =>
+                f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+              );
+
+              if (hasPoints) {
+                // Add circle layer for points
+                const circleLayerId = `${wicLocationsLayer.id}_circle_${newLayers.length - 1}`;
+                if (!map.getLayer(circleLayerId)) {
+                  map.addLayer({
+                    id: circleLayerId,
+                    type: 'circle',
+                    source: wicLocationsLayer.id,
+                    filter: ['any',
+                      ['==', ['geometry-type'], 'Point'],
+                      ['==', ['geometry-type'], 'MultiPoint']
+                    ],
+                    paint: {
+                      'circle-radius': 8,
+                      'circle-color': wicLocationsLayer.style.fill.color,
+                      'circle-opacity': wicLocationsLayer.style.fill.opacity,
+                      'circle-stroke-color': wicLocationsLayer.style.line.color,
+                      'circle-stroke-width': wicLocationsLayer.style.line.width
+                    }
+                  });
+                }
+              }
+
+              if (hasPolygons) {
+                // Add fill layer for polygons
+                const fillLayerId = `${wicLocationsLayer.id}_fill_${newLayers.length - 1}`;
+                if (!map.getLayer(fillLayerId)) {
+                  map.addLayer({
+                    id: fillLayerId,
+                    type: 'fill',
+                    source: wicLocationsLayer.id,
+                    filter: ['any',
+                      ['==', ['geometry-type'], 'Polygon'],
+                      ['==', ['geometry-type'], 'MultiPolygon']
+                    ],
+                    paint: {
+                      'fill-color': wicLocationsLayer.style.fill.color,
+                      'fill-opacity': wicLocationsLayer.style.fill.opacity
+                    }
+                  });
+                }
+
+                // Add line layer for polygons
+                const lineLayerId = `${wicLocationsLayer.id}_line_${newLayers.length - 1}`;
+                if (!map.getLayer(lineLayerId)) {
+                  map.addLayer({
+                    id: lineLayerId,
+                    type: 'line',
+                    source: wicLocationsLayer.id,
+                    filter: ['any',
+                      ['==', ['geometry-type'], 'Polygon'],
+                      ['==', ['geometry-type'], 'MultiPolygon']
+                    ],
+                    paint: {
+                      'line-color': wicLocationsLayer.style.line.color,
+                      'line-width': wicLocationsLayer.style.line.width
+                    }
+                  });
+                }
+              }
+
+              if (enableDebugLogging) {
+                console.log('WIC layer added to map:', wicLocationsLayer.id);
+              }
+            } catch (error) {
+              if (enableDebugLogging) {
+                console.log('Error adding WIC layer to map:', error);
+              }
+            }
+          }
+          
+          return newLayers;
         });
       })
       .catch(error => {
@@ -478,29 +571,40 @@ export const MapView: React.FC<MapViewProps> = ({
       }
 
       // Check if we clicked on a map layer feature
-      const features = map.queryRenderedFeatures(e.point, {
-        layers: layers.flatMap((layer, index) => {
-          const layerIds = [];
-          const hasPoints = layer.data.features.some(f =>
-            f.geometry.type === 'Point' || f.geometry.type === 'MultiPoint'
-          );
-          const hasPolygons = layer.data.features.some(f =>
-            f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
-          );
+      const availableLayers = layers.flatMap((layer, index) => {
+        const layerIds = [];
+        const hasPoints = layer.data.features.some((f: any) =>
+          f.geometry.type === 'Point' || f.geometry.type === 'MultiPoint'
+        );
+        const hasPolygons = layer.data.features.some((f: any) =>
+          f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+        );
 
-          if (hasPoints) {
-            layerIds.push(`${layer.id}_circle_${index}`);
-          }
-          if (hasPolygons) {
-            layerIds.push(`${layer.id}_fill_${index}`);
-          }
-          return layerIds;
-        })
+        if (hasPoints) {
+          layerIds.push(`${layer.id}_circle_${index}`);
+        }
+        if (hasPolygons) {
+          layerIds.push(`${layer.id}_fill_${index}`);
+        }
+        
+        if (enableDebugLogging) {
+          console.log(`Layer ${layer.id}: hasPoints=${hasPoints}, hasPolygons=${hasPolygons}, layerIds=`, layerIds);
+        }
+        
+        return layerIds;
+      });
+
+      if (enableDebugLogging) {
+        console.log('Available layers for click detection:', availableLayers);
+      }
+
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: availableLayers
       });
 
       if (features.length > 0) {
         const feature = features[0];
-        
+
         if (enableDebugLogging) {
           console.log('Clicked feature:', feature);
           console.log('Feature layer ID:', feature.layer.id);
@@ -540,7 +644,7 @@ export const MapView: React.FC<MapViewProps> = ({
                 const featureCoords = f.geometry.coordinates as [number, number];
                 // Check if coordinates match (with small tolerance for floating point precision)
                 return Math.abs(clickedCoords[0] - featureCoords[0]) < 0.000001 &&
-                       Math.abs(clickedCoords[1] - featureCoords[1]) < 0.000001;
+                  Math.abs(clickedCoords[1] - featureCoords[1]) < 0.000001;
               }
               return false;
             });
