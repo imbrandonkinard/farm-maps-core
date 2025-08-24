@@ -289,10 +289,6 @@ export const MapView: React.FC<MapViewProps> = ({
           }
         };
         setLayers(prevLayers => {
-          if (enableDebugLogging) {
-            console.log('Adding school complex layer to:', prevLayers);
-          }
-          // Check if layer already exists
           const exists = prevLayers.some(layer => layer.id === schoolComplexLayer.id);
           if (exists) {
             return prevLayers;
@@ -330,7 +326,6 @@ export const MapView: React.FC<MapViewProps> = ({
           }
         };
         setLayers(prevLayers => {
-          // Check if layer already exists
           const exists = prevLayers.some(layer => layer.id === schoolDistrictLayer.id);
           if (exists) {
             return prevLayers;
@@ -368,7 +363,6 @@ export const MapView: React.FC<MapViewProps> = ({
           }
         };
         setLayers(prevLayers => {
-          // Check if layer already exists
           const exists = prevLayers.some(layer => layer.id === wicLocationsLayer.id);
           if (exists) {
             return prevLayers;
@@ -380,6 +374,181 @@ export const MapView: React.FC<MapViewProps> = ({
         console.error('Error loading layer data:', error);
       });
   }, [enableDebugLogging]);
+
+  // Add initial layers to map and set up click handlers
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map || !map.isStyleLoaded() || layers.length === 0) return;
+
+    // Add sources and layers for initial layers
+    layers.forEach((layer, index) => {
+      try {
+        // Add source if it doesn't exist
+        if (!map.getSource(layer.id)) {
+          map.addSource(layer.id, {
+            type: 'geojson',
+            data: layer.data
+          });
+        }
+
+        // Check geometry types
+        const hasPoints = layer.data.features.some(f =>
+          f.geometry.type === 'Point' || f.geometry.type === 'MultiPoint'
+        );
+        const hasPolygons = layer.data.features.some(f =>
+          f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+        );
+
+        if (hasPoints) {
+          // Add circle layer for points
+          const circleLayerId = `${layer.id}_circle_${index}`;
+          if (!map.getLayer(circleLayerId)) {
+            map.addLayer({
+              id: circleLayerId,
+              type: 'circle',
+              source: layer.id,
+              filter: ['any',
+                ['==', ['geometry-type'], 'Point'],
+                ['==', ['geometry-type'], 'MultiPoint']
+              ],
+              paint: {
+                'circle-radius': 8,
+                'circle-color': layer.style.fill.color,
+                'circle-opacity': layer.style.fill.opacity,
+                'circle-stroke-color': layer.style.line.color,
+                'circle-stroke-width': layer.style.line.width
+              }
+            });
+          }
+        }
+
+        if (hasPolygons) {
+          // Add fill layer for polygons
+          const fillLayerId = `${layer.id}_fill_${index}`;
+          if (!map.getLayer(fillLayerId)) {
+            map.addLayer({
+              id: fillLayerId,
+              type: 'fill',
+              source: layer.id,
+              filter: ['any',
+                ['==', ['geometry-type'], 'Polygon'],
+                ['==', ['geometry-type'], 'MultiPolygon']
+              ],
+              paint: {
+                'fill-color': layer.style.fill.color,
+                'fill-opacity': layer.style.fill.opacity
+              }
+            });
+          }
+
+          // Add line layer for polygons
+          const lineLayerId = `${layer.id}_line_${index}`;
+          if (!map.getLayer(lineLayerId)) {
+            map.addLayer({
+              id: lineLayerId,
+              type: 'line',
+              source: layer.id,
+              filter: ['any',
+                ['==', ['geometry-type'], 'Polygon'],
+                ['==', ['geometry-type'], 'MultiPolygon']
+              ],
+              paint: {
+                'line-color': layer.style.line.color,
+                'line-width': layer.style.line.width
+              }
+            });
+          }
+        }
+      } catch (error) {
+        if (enableDebugLogging) {
+          console.log('Error adding layer to map:', layer.id, error);
+        }
+      }
+    });
+
+    // Set up click handler for map layers
+    const onMapLayerClick = (e: any) => {
+      const draw = drawRef.current;
+      if (!draw) return;
+
+      // Don't show popup if we're in drawing mode
+      const currentMode = draw.getMode();
+      if (currentMode === 'draw_polygon' || currentMode === 'direct_select') {
+        return;
+      }
+
+      // Check if we clicked on a map layer feature
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: layers.flatMap((layer, index) => {
+          const layerIds = [];
+          const hasPoints = layer.data.features.some(f =>
+            f.geometry.type === 'Point' || f.geometry.type === 'MultiPoint'
+          );
+          const hasPolygons = layer.data.features.some(f =>
+            f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+          );
+
+          if (hasPoints) {
+            layerIds.push(`${layer.id}_circle_${index}`);
+          }
+          if (hasPolygons) {
+            layerIds.push(`${layer.id}_fill_${index}`);
+          }
+          return layerIds;
+        })
+      });
+
+      if (features.length > 0) {
+        const feature = features[0];
+        
+        // Find the corresponding layer
+        const layer = layers.find(l => {
+          const layerIds = [];
+          const hasPoints = l.data.features.some(f =>
+            f.geometry.type === 'Point' || f.geometry.type === 'MultiPoint'
+          );
+          const hasPolygons = l.data.features.some(f =>
+            f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+          );
+
+          if (hasPoints) {
+            layerIds.push(`${l.id}_circle_${layers.indexOf(l)}`);
+          }
+          if (hasPolygons) {
+            layerIds.push(`${l.id}_fill_${layers.indexOf(l)}`);
+          }
+          return layerIds.includes(feature.layer.id);
+        });
+
+        if (layer) {
+          // Find the actual feature data
+          const actualFeature = layer.data.features.find(f => 
+            f.properties && f.properties[layer.nameProperty] === feature.properties?.[layer.nameProperty]
+          );
+
+          if (actualFeature) {
+            // Show popup for the feature
+            if (showPolygonPopup) {
+              setPolygonPopupInfo({
+                feature: actualFeature,
+                position: {
+                  x: e.point.x,
+                  y: e.point.y
+                }
+              });
+            }
+          }
+        }
+      }
+    };
+
+    // Add click handler for map layers
+    map.on('click', onMapLayerClick);
+
+    return () => {
+      map.off('click', onMapLayerClick);
+    };
+  }, [layers, mapRef, showPolygonPopup, enableDebugLogging]);
 
   // Add debugging for layer changes
   useEffect(() => {
