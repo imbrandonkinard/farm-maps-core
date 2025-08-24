@@ -47,7 +47,7 @@ export const MapView: React.FC<MapViewProps> = ({
   const features = useSelector(selectFeatures);
   const geojson = useSelector(selectGeoJSON);
   const roundedArea = useSelector(selectCurrentArea);
-  
+
   // Debug: Check if Redux actions are available
   if (enableDebugLogging) {
     console.log('Redux actions available:', {
@@ -56,7 +56,7 @@ export const MapView: React.FC<MapViewProps> = ({
       selectFeatures: typeof selectFeatures
     });
   }
-  
+
   // Debug: Test Redux store connectivity
   useEffect(() => {
     if (enableDebugLogging) {
@@ -71,14 +71,14 @@ export const MapView: React.FC<MapViewProps> = ({
         },
         properties: { name: 'Test Feature' }
       };
-      
+
       setTimeout(() => {
         console.log('Dispatching test feature...');
         dispatch(updateFeatures([testFeature]));
       }, 2000);
     }
   }, [dispatch, enableDebugLogging]);
-  
+
   const mapRef = useRef<any>(null);
   const drawRef = useRef<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -287,7 +287,7 @@ export const MapView: React.FC<MapViewProps> = ({
           try {
             const feature = draw.get(id);
             if (!feature) return null;
-            
+
             return {
               id: feature.id,
               name: feature.properties?.name || `Field ${feature.id.slice(0, 6)}`,
@@ -342,7 +342,7 @@ export const MapView: React.FC<MapViewProps> = ({
   // Draw all features from the Drawn Fields array
   const drawAllFeatures = useCallback(() => {
     if (!drawRef.current) return;
-    
+
     if (enableDebugLogging) {
       console.log('Drawing all features from Drawn Fields');
       console.log('Features to draw:', features);
@@ -351,22 +351,22 @@ export const MapView: React.FC<MapViewProps> = ({
     try {
       // Clear existing features
       drawRef.current.deleteAll();
-      
+
       if (features && features.length > 0) {
         // Create feature collection
         const featureCollection = {
           type: 'FeatureCollection',
           features: features
         };
-        
+
         // Draw all features
         drawRef.current.set(featureCollection);
-        
+
         // Calculate total area
         const drawnFeatures = drawRef.current.getAll();
         const area = calculateAreaInAcres(drawnFeatures);
         dispatch(updateCurrentArea(area));
-        
+
         if (enableDebugLogging) {
           console.log('Successfully drew features:', drawnFeatures);
         }
@@ -389,7 +389,7 @@ export const MapView: React.FC<MapViewProps> = ({
     let timeoutId;
     let retryCount = 0;
     const MAX_RETRIES = 10;
-    
+
     const initMap = () => {
       if (retryCount >= MAX_RETRIES) {
         if (enableDebugLogging) {
@@ -467,14 +467,14 @@ export const MapView: React.FC<MapViewProps> = ({
     if (enableDebugLogging) {
       console.log('onUpdate called with event:', e);
     }
-    
+
     // Get all current features from draw control
     const draw = drawRef.current;
     if (!draw) return;
-    
+
     // Get the complete current state of all features
     const allFeatures = draw.getAll().features;
-    
+
     // Update Redux with all features
     if (enableDebugLogging) {
       console.log('Updating features in Redux:', allFeatures);
@@ -532,12 +532,12 @@ export const MapView: React.FC<MapViewProps> = ({
 
   const handleFeatureSelect = useCallback((feature) => {
     if (!feature.geometry || !feature.geometry.coordinates) return;
-    
+
     // For MultiPolygon, use the first polygon
-    const coordinates = feature.geometry.type === 'MultiPolygon' 
-      ? feature.geometry.coordinates[0][0] 
+    const coordinates = feature.geometry.type === 'MultiPolygon'
+      ? feature.geometry.coordinates[0][0]
       : feature.geometry.coordinates[0];
-    
+
     // Calculate bounds
     const bounds = coordinates.reduce(
       (bounds, coord) => {
@@ -562,7 +562,7 @@ export const MapView: React.FC<MapViewProps> = ({
         [bounds.minLng, bounds.minLat],
         [bounds.maxLng, bounds.maxLat]
       ],
-      { 
+      {
         padding: 50,
         duration: 1000 // Smooth animation
       }
@@ -574,13 +574,13 @@ export const MapView: React.FC<MapViewProps> = ({
     if (drawRef.current) {
       drawRef.current.changeMode('simple_select', { featureIds: [feature.id] });
     }
-    
+
     // Update the view to focus on the selected feature
     if (feature.geometry && feature.geometry.coordinates) {
-      const coordinates = feature.geometry.type === 'MultiPolygon' 
-        ? feature.geometry.coordinates[0][0] 
+      const coordinates = feature.geometry.type === 'MultiPolygon'
+        ? feature.geometry.coordinates[0][0]
         : feature.geometry.coordinates[0];
-      
+
       const bounds = coordinates.reduce(
         (bounds, coord) => {
           return {
@@ -603,7 +603,7 @@ export const MapView: React.FC<MapViewProps> = ({
           [bounds.minLng, bounds.minLat],
           [bounds.maxLng, bounds.maxLat]
         ],
-        { 
+        {
           padding: 50,
           duration: 1000
         }
@@ -677,41 +677,72 @@ export const MapView: React.FC<MapViewProps> = ({
   // Update layer visibility when active layer changes
   useEffect(() => {
     const map = mapRef.current?.getMap();
-    if (!map) return;
+    if (!map || !map.isStyleLoaded()) return;
+
+    // Wait for style to be fully loaded
+    if (!map.getStyle()) return;
 
     // Hide all layers first
     layers.forEach((layer, index) => {
-      map.setLayoutProperty(`${layer.id}_fill_${index}`, 'visibility', 'none');
-      map.setLayoutProperty(`${layer.id}_line_${index}`, 'visibility', 'none');
+      try {
+        const fillLayerId = `${layer.id}_fill_${index}`;
+        const lineLayerId = `${layer.id}_line_${index}`;
+        
+        // Check if layers exist before trying to modify them
+        if (map.getLayer(fillLayerId)) {
+          map.setLayoutProperty(fillLayerId, 'visibility', 'none');
+        }
+        if (map.getLayer(lineLayerId)) {
+          map.setLayoutProperty(lineLayerId, 'visibility', 'none');
+        }
+      } catch (error) {
+        // Layer might not exist yet, ignore error
+        if (enableDebugLogging) {
+          console.log('Layer not ready yet:', layer.id);
+        }
+      }
     });
 
     // Show active layer
     if (activeLayer) {
       const activeIndex = layers.findIndex(layer => layer.id === activeLayer.id);
       if (activeIndex !== -1) {
-        map.setLayoutProperty(`${activeLayer.id}_fill_${activeIndex}`, 'visibility', 'visible');
-        map.setLayoutProperty(`${activeLayer.id}_line_${activeIndex}`, 'visibility', 'visible');
+        try {
+          const fillLayerId = `${activeLayer.id}_fill_${activeIndex}`;
+          const lineLayerId = `${activeLayer.id}_line_${activeIndex}`;
+          
+          if (map.getLayer(fillLayerId)) {
+            map.setLayoutProperty(fillLayerId, 'visibility', 'visible');
+          }
+          if (map.getLayer(lineLayerId)) {
+            map.setLayoutProperty(lineLayerId, 'visibility', 'visible');
+          }
+        } catch (error) {
+          if (enableDebugLogging) {
+            console.log('Active layer not ready yet:', activeLayer.id);
+          }
+        }
       }
     }
-  }, [activeLayer, layers]);
+  }, [activeLayer, layers, enableDebugLogging]);
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      height: '80vh', 
+    <div style={{
+      display: 'flex',
+      height: '80vh',
       width: '100%',
       backgroundColor: '#f5f5f5'
     }}>
       {showFeatureSearch && (
-        <FeatureSearchPanel 
+        <FeatureSearchPanel
           layers={layers}
           activeLayer={activeLayer}
           onLayerChange={setActiveLayer}
           onFeatureSelect={handleFeatureSelect}
         />
       )}
-      <div style={{ 
-        flex: 1, 
+      <div style={{
+        flex: 1,
         position: 'relative',
         backgroundColor: '#fff',
         margin: '0 10px'
@@ -756,7 +787,7 @@ export const MapView: React.FC<MapViewProps> = ({
           onLoad={(event) => {
             const map = event.target;
             setMapLoaded(true);
-            
+
             // Initialize drawing functionality
             updateMapboxDrawConstants();
             const draw = createMapboxDraw({
@@ -768,12 +799,12 @@ export const MapView: React.FC<MapViewProps> = ({
               touchBuffer: 4,
               boxSelect: false
             });
-            
+
             map.addControl(draw, 'top-left');
-            
+
             // Store draw reference
             drawRef.current = draw;
-            
+
             // Add event listeners
             map.on('draw.create', (e) => {
               if (enableDebugLogging) {
@@ -788,60 +819,90 @@ export const MapView: React.FC<MapViewProps> = ({
                   properties: f.properties
                 })));
               }
-              
+
               const enhancedFeatures = e.features.map(f => ({
                 ...f,
                 properties: { ...f.properties, name: `Field ${f.id.slice(0, 6)}` }
               }));
-              
+
               if (enableDebugLogging) {
                 console.log('Enhanced features:', enhancedFeatures);
                 console.log('Features have IDs:', enhancedFeatures.map(f => f.id));
               }
-              
+
               // Dispatch Redux action to add new features
               dispatch(updateFeatures(enhancedFeatures));
-              
+
               if (enableDebugLogging) {
                 console.log('Dispatched updateFeatures action with payload:', enhancedFeatures);
               }
-              
+
               // Call callback if provided
               if (onFeatureCreate) {
                 onFeatureCreate(enhancedFeatures);
               }
             });
-            
+
             map.on('draw.update', (e) => {
               if (enableDebugLogging) {
                 console.log('Draw update event:', e);
               }
               // Dispatch Redux action to update features
               dispatch(updateFeatures(e.features));
-              
+
               // Call callback if provided
               if (onFeatureUpdate) {
                 onFeatureUpdate(e.features);
               }
             });
-            
+
             map.on('draw.delete', (e) => {
               if (enableDebugLogging) {
                 console.log('Draw delete event:', e);
               }
               // Dispatch Redux action to delete features
               dispatch(deleteFeatures(e.features));
-              
+
               // Call callback if provided
               if (onFeatureDelete) {
                 onFeatureDelete(e.features);
               }
             });
-            
+
             map.on('draw.selectionchange', (e) => {
               if (e.features && e.features.length > 0) {
                 draw.changeMode('direct_select', { featureId: e.features[0].id });
               }
+            });
+
+            // Add style load event handler
+            map.on('style.load', () => {
+              if (enableDebugLogging) {
+                console.log('Map style loaded, updating layer visibility');
+              }
+              // Trigger layer visibility update after style loads
+              setTimeout(() => {
+                if (activeLayer) {
+                  const activeIndex = layers.findIndex(layer => layer.id === activeLayer.id);
+                  if (activeIndex !== -1) {
+                    try {
+                      const fillLayerId = `${activeLayer.id}_fill_${activeIndex}`;
+                      const lineLayerId = `${activeLayer.id}_line_${activeIndex}`;
+                      
+                      if (map.getLayer(fillLayerId)) {
+                        map.setLayoutProperty(fillLayerId, 'visibility', 'visible');
+                      }
+                      if (map.getLayer(lineLayerId)) {
+                        map.setLayoutProperty(lineLayerId, 'visibility', 'visible');
+                      }
+                    } catch (error) {
+                      if (enableDebugLogging) {
+                        console.log('Error updating layer visibility after style load:', error);
+                      }
+                    }
+                  }
+                }
+              }, 100); // Small delay to ensure layers are ready
             });
             
             // Call onMapLoad callback if provided
@@ -851,7 +912,7 @@ export const MapView: React.FC<MapViewProps> = ({
           }}
         >
           {showNavigationControl && (
-            <NavigationControl 
+            <NavigationControl
               position="top-right"
               showCompass={false}
               showZoom={true}
@@ -870,7 +931,7 @@ export const MapView: React.FC<MapViewProps> = ({
         )}
       </div>
       {showControlPanel && (
-        <div style={{ 
+        <div style={{
           width: '300px',
           backgroundColor: '#fff',
           display: 'flex',
@@ -890,7 +951,7 @@ export const MapView: React.FC<MapViewProps> = ({
             overflowY: 'auto',
             padding: '15px'
           }}>
-            <ControlPanel 
+            <ControlPanel
               polygons={features}
               onPolygonClick={onPolygonClick}
               onDelete={onDelete}
