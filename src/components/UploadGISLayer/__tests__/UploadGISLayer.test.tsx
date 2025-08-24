@@ -12,7 +12,7 @@ global.DOMParser = jest.fn(() => mockDOMParser) as any;
 
 // Mock File.text() method
 Object.defineProperty(File.prototype, 'text', {
-  value: function() {
+  value: function () {
     return Promise.resolve(this.content || '');
   },
   writable: true
@@ -34,7 +34,7 @@ describe('UploadGISLayer', () => {
 
   it('renders when open', () => {
     render(<UploadGISLayer {...defaultProps} />);
-    
+
     expect(screen.getByText('Upload GIS Layer')).toBeInTheDocument();
     expect(screen.getByText('CSV')).toBeInTheDocument();
     expect(screen.getByText('GeoJSON')).toBeInTheDocument();
@@ -44,38 +44,38 @@ describe('UploadGISLayer', () => {
 
   it('does not render when closed', () => {
     render(<UploadGISLayer {...defaultProps} isOpen={false} />);
-    
+
     expect(screen.queryByText('Upload GIS Layer')).not.toBeInTheDocument();
   });
 
   it('closes when close button is clicked', () => {
     render(<UploadGISLayer {...defaultProps} />);
-    
+
     const closeButton = screen.getByText('×');
     fireEvent.click(closeButton);
-    
+
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
   it('closes when cancel button is clicked', () => {
     render(<UploadGISLayer {...defaultProps} />);
-    
+
     const cancelButton = screen.getByText('Cancel');
     fireEvent.click(cancelButton);
-    
+
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
   describe('File Upload', () => {
     it('handles drag and drop events', () => {
       render(<UploadGISLayer {...defaultProps} />);
-      
+
       const uploadArea = screen.getByText('Click to upload or drag and drop');
-      
+
       // Test drag enter
       fireEvent.dragEnter(uploadArea);
       expect(screen.getByText('Drop files here')).toBeInTheDocument();
-      
+
       // Test drag leave
       fireEvent.dragLeave(uploadArea);
       expect(screen.getByText('Click to upload or drag and drop')).toBeInTheDocument();
@@ -87,12 +87,12 @@ describe('UploadGISLayer', () => {
       const csvContent = 'name,lat,lng\nGolf Course 1,21.3069,-157.8583\nGolf Course 2,21.3000,-157.8500';
       const csvFile = new File([csvContent], 'golf_courses.csv', { type: 'text/csv' });
       (csvFile as any).content = csvContent;
-      
+
       render(<UploadGISLayer {...defaultProps} />);
-      
+
       const fileInput = screen.getByDisplayValue('') as HTMLInputElement;
       fireEvent.change(fileInput, { target: { files: [csvFile] } });
-      
+
       await waitFor(() => {
         expect(mockOnUpload).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -124,12 +124,12 @@ describe('UploadGISLayer', () => {
       const csvContent = 'name,latitude,longitude\nGolf Course 1,21.3069,-157.8583';
       const csvFile = new File([csvContent], 'golf_courses.csv', { type: 'text/csv' });
       (csvFile as any).content = csvContent;
-      
+
       render(<UploadGISLayer {...defaultProps} />);
-      
+
       const fileInput = screen.getByDisplayValue('') as HTMLInputElement;
       fireEvent.change(fileInput, { target: { files: [csvFile] } });
-      
+
       await waitFor(() => {
         expect(mockOnUpload).toHaveBeenCalled();
       });
@@ -139,12 +139,12 @@ describe('UploadGISLayer', () => {
       const csvContent = 'name,description\nGolf Course 1,Nice course';
       const csvFile = new File([csvContent], 'golf_courses.csv', { type: 'text/csv' });
       (csvFile as any).content = csvContent;
-      
+
       render(<UploadGISLayer {...defaultProps} />);
-      
+
       const fileInput = screen.getByDisplayValue('') as HTMLInputElement;
       fireEvent.change(fileInput, { target: { files: [csvFile] } });
-      
+
       await waitFor(() => {
         expect(screen.getByText('CSV must contain latitude and longitude columns')).toBeInTheDocument();
       });
@@ -154,12 +154,12 @@ describe('UploadGISLayer', () => {
       const csvContent = 'name,lat,lng\nGolf Course 1,21.3069,-157.8583\nInvalid Course,invalid,invalid\nGolf Course 2,21.3000,-157.8500';
       const csvFile = new File([csvContent], 'golf_courses.csv', { type: 'text/csv' });
       (csvFile as any).content = csvContent;
-      
+
       render(<UploadGISLayer {...defaultProps} />);
-      
+
       const fileInput = screen.getByDisplayValue('') as HTMLInputElement;
       fireEvent.change(fileInput, { target: { files: [csvFile] } });
-      
+
       await waitFor(() => {
         expect(mockOnUpload).toHaveBeenCalled();
       });
@@ -183,12 +183,12 @@ describe('UploadGISLayer', () => {
       });
       const geojsonFile = new File([geojsonContent], 'golf_courses.geojson', { type: 'application/geo+json' });
       (geojsonFile as any).content = geojsonContent;
-      
+
       render(<UploadGISLayer {...defaultProps} />);
-      
+
       const fileInput = screen.getByDisplayValue('') as HTMLInputElement;
       fireEvent.change(fileInput, { target: { files: [geojsonFile] } });
-      
+
       await waitFor(() => {
         expect(mockOnUpload).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -221,12 +221,12 @@ describe('UploadGISLayer', () => {
       });
       const geojsonFile = new File([geojsonContent], 'golf_course.geojson', { type: 'application/geo+json' });
       (geojsonFile as any).content = geojsonContent;
-      
+
       render(<UploadGISLayer {...defaultProps} />);
-      
+
       const fileInput = screen.getByDisplayValue('') as HTMLInputElement;
       fireEvent.change(fileInput, { target: { files: [geojsonFile] } });
-      
+
       await waitFor(() => {
         expect(mockOnUpload).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -251,12 +251,12 @@ describe('UploadGISLayer', () => {
       const geojsonContent = '{"type": "Invalid", "data": "invalid"}';
       const geojsonFile = new File([geojsonContent], 'invalid.geojson', { type: 'application/geo+json' });
       (geojsonFile as any).content = geojsonContent;
-      
+
       render(<UploadGISLayer {...defaultProps} />);
-      
+
       const fileInput = screen.getByDisplayValue('') as HTMLInputElement;
       fireEvent.change(fileInput, { target: { files: [geojsonFile] } });
-      
+
       await waitFor(() => {
         expect(screen.getByText('Invalid GeoJSON file')).toBeInTheDocument();
       });
@@ -280,10 +280,10 @@ describe('UploadGISLayer', () => {
             </Placemark>
           </Document>
         </kml>`;
-      
+
       const kmlFile = new File([kmlContent], 'golf_courses.kml', { type: 'application/vnd.google-earth.kml+xml' });
       (kmlFile as any).content = kmlContent;
-      
+
       // Mock DOMParser response
       const mockXmlDoc = {
         getElementsByTagName: jest.fn().mockReturnValue([
@@ -299,14 +299,14 @@ describe('UploadGISLayer', () => {
           }
         ])
       };
-      
+
       mockDOMParser.parseFromString.mockReturnValue(mockXmlDoc);
-      
+
       render(<UploadGISLayer {...defaultProps} />);
-      
+
       const fileInput = screen.getByDisplayValue('') as HTMLInputElement;
       fireEvent.change(fileInput, { target: { files: [kmlFile] } });
-      
+
       await waitFor(() => {
         expect(mockOnUpload).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -330,12 +330,12 @@ describe('UploadGISLayer', () => {
     it('shows error for shapefile uploads', async () => {
       const shpFile = new File(['fake shapefile content'], 'golf_courses.shp', { type: 'application/octet-stream' });
       (shpFile as any).content = 'fake shapefile content';
-      
+
       render(<UploadGISLayer {...defaultProps} />);
-      
+
       const fileInput = screen.getByDisplayValue('') as HTMLInputElement;
       fireEvent.change(fileInput, { target: { files: [shpFile] } });
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Shapefile support requires additional libraries/)).toBeInTheDocument();
       });
@@ -346,12 +346,12 @@ describe('UploadGISLayer', () => {
     it('shows error for unsupported file types', async () => {
       const unsupportedFile = new File(['content'], 'file.txt', { type: 'text/plain' });
       (unsupportedFile as any).content = 'content';
-      
+
       render(<UploadGISLayer {...defaultProps} />);
-      
+
       const fileInput = screen.getByDisplayValue('') as HTMLInputElement;
       fireEvent.change(fileInput, { target: { files: [unsupportedFile] } });
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Unsupported file type/)).toBeInTheDocument();
       });
@@ -362,21 +362,21 @@ describe('UploadGISLayer', () => {
       const unsupportedFile = new File(['content'], 'file.txt', { type: 'text/plain' });
       (unsupportedFile as any).content = 'content';
       render(<UploadGISLayer {...defaultProps} />);
-      
+
       const fileInput = screen.getByDisplayValue('') as HTMLInputElement;
       fireEvent.change(fileInput, { target: { files: [unsupportedFile] } });
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Unsupported file type/)).toBeInTheDocument();
       });
-      
+
       // Then upload valid file
       const csvContent = 'name,lat,lng\nGolf Course 1,21.3069,-157.8583';
       const csvFile = new File([csvContent], 'golf_courses.csv', { type: 'text/csv' });
       (csvFile as any).content = csvContent;
-      
+
       fireEvent.change(fileInput, { target: { files: [csvFile] } });
-      
+
       await waitFor(() => {
         expect(screen.queryByText(/Unsupported file type/)).not.toBeInTheDocument();
         expect(mockOnUpload).toHaveBeenCalled();
@@ -389,15 +389,15 @@ describe('UploadGISLayer', () => {
       const csvContent = 'name,lat,lng\nGolf Course 1,21.3069,-157.8583';
       const csvFile = new File([csvContent], 'golf_courses.csv', { type: 'text/csv' });
       (csvFile as any).content = csvContent;
-      
+
       render(<UploadGISLayer {...defaultProps} />);
-      
+
       const fileInput = screen.getByDisplayValue('') as HTMLInputElement;
       fireEvent.change(fileInput, { target: { files: [csvFile] } });
-      
+
       // Should show progress indicator
       expect(screen.getByText(/Processing/)).toBeInTheDocument();
-      
+
       await waitFor(() => {
         expect(mockOnUpload).toHaveBeenCalled();
       });
@@ -407,10 +407,10 @@ describe('UploadGISLayer', () => {
   describe('File Input', () => {
     it('accepts supported file types', () => {
       render(<UploadGISLayer {...defaultProps} />);
-      
+
       const fileInput = screen.getByDisplayValue('') as HTMLInputElement;
       const acceptAttribute = fileInput.accept;
-      
+
       expect(acceptAttribute).toContain('.csv');
       expect(acceptAttribute).toContain('.geojson');
       expect(acceptAttribute).toContain('.json');

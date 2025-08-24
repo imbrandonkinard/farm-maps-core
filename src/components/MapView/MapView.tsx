@@ -131,41 +131,92 @@ export const MapView: React.FC<MapViewProps> = ({
           });
         }
         
-        // Add the new layers
+        // Add the new layers based on geometry type
         const layerIndex = layers.length; // Use the current length as index
-        const fillLayerId = `${uploadedLayer.id}_fill_${layerIndex}`;
-        const lineLayerId = `${uploadedLayer.id}_line_${layerIndex}`;
         
-        // Add fill layer
-        map.addLayer({
-          id: fillLayerId,
-          type: 'fill',
-          source: uploadedLayer.id,
-          paint: {
-            'fill-color': uploadedLayer.style.fill.color,
-            'fill-opacity': uploadedLayer.style.fill.opacity
-          },
-          layout: {
-            visibility: 'visible' // Make the new layer visible
-          }
-        });
+        // Check if this layer contains points, polygons, or both
+        const hasPoints = uploadedLayer.data.features.some(f => 
+          f.geometry.type === 'Point' || f.geometry.type === 'MultiPoint'
+        );
+        const hasPolygons = uploadedLayer.data.features.some(f => 
+          f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+        );
         
-        // Add line layer
-        map.addLayer({
-          id: lineLayerId,
-          type: 'line',
-          source: uploadedLayer.id,
-          paint: {
-            'line-color': uploadedLayer.style.line.color,
-            'line-width': uploadedLayer.style.line.width
-          },
-          layout: {
-            visibility: 'visible' // Make the new layer visible
+        if (hasPoints) {
+          // Add circle layer for points
+          const circleLayerId = `${uploadedLayer.id}_circle_${layerIndex}`;
+          map.addLayer({
+            id: circleLayerId,
+            type: 'circle',
+            source: uploadedLayer.id,
+            filter: ['any', 
+              ['==', ['geometry-type'], 'Point'],
+              ['==', ['geometry-type'], 'MultiPoint']
+            ],
+            paint: {
+              'circle-radius': 8,
+              'circle-color': uploadedLayer.style.fill.color,
+              'circle-opacity': uploadedLayer.style.fill.opacity,
+              'circle-stroke-color': uploadedLayer.style.line.color,
+              'circle-stroke-width': uploadedLayer.style.line.width
+            },
+            layout: {
+              visibility: 'visible'
+            }
+          });
+          
+          if (enableDebugLogging) {
+            console.log('Added circle layer for points:', circleLayerId);
           }
-        });
+        }
+        
+        if (hasPolygons) {
+          // Add fill layer for polygons
+          const fillLayerId = `${uploadedLayer.id}_fill_${layerIndex}`;
+          map.addLayer({
+            id: fillLayerId,
+            type: 'fill',
+            source: uploadedLayer.id,
+            filter: ['any', 
+              ['==', ['geometry-type'], 'Polygon'],
+              ['==', ['geometry-type'], 'MultiPolygon']
+            ],
+            paint: {
+              'fill-color': uploadedLayer.style.fill.color,
+              'fill-opacity': uploadedLayer.style.fill.opacity
+            },
+            layout: {
+              visibility: 'visible'
+            }
+          });
+          
+          // Add line layer for polygons
+          const lineLayerId = `${uploadedLayer.id}_line_${layerIndex}`;
+          map.addLayer({
+            id: lineLayerId,
+            type: 'line',
+            source: uploadedLayer.id,
+            filter: ['any', 
+              ['==', ['geometry-type'], 'Polygon'],
+              ['==', ['geometry-type'], 'MultiPolygon']
+            ],
+            paint: {
+              'line-color': uploadedLayer.style.line.color,
+              'line-width': uploadedLayer.style.line.width
+            },
+            layout: {
+              visibility: 'visible'
+            }
+          });
+          
+          if (enableDebugLogging) {
+            console.log('Added fill and line layers for polygons:', fillLayerId, lineLayerId);
+          }
+        }
         
         if (enableDebugLogging) {
           console.log('Successfully added uploaded layer to map:', uploadedLayer.id);
+          console.log('Layer contains points:', hasPoints, 'polygons:', hasPolygons);
         }
       } catch (error) {
         console.error('Error adding uploaded layer to map:', error);
@@ -703,32 +754,80 @@ export const MapView: React.FC<MapViewProps> = ({
           minzoom: 0,
           maxzoom: 19
         },
-        ...layers.flatMap((layer, index) => ([
-          {
-            id: `${layer.id}_fill_${index}`,
-            type: 'fill',
-            source: layer.id,
-            paint: {
-              'fill-color': layer.style.fill.color,
-              'fill-opacity': layer.style.fill.opacity
-            },
-            layout: {
-              visibility: layer === activeLayer ? 'visible' : 'none'
-            }
-          },
-          {
-            id: `${layer.id}_line_${index}`,
-            type: 'line',
-            source: layer.id,
-            paint: {
-              'line-color': layer.style.line.color,
-              'line-width': layer.style.line.width
-            },
-            layout: {
-              visibility: layer === activeLayer ? 'visible' : 'none'
-            }
+        ...layers.flatMap((layer, index) => {
+          const layers = [];
+          
+          // Check if this layer contains points, polygons, or both
+          const hasPoints = layer.data.features.some(f => 
+            f.geometry.type === 'Point' || f.geometry.type === 'MultiPoint'
+          );
+          const hasPolygons = layer.data.features.some(f => 
+            f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+          );
+          
+          if (hasPoints) {
+            // Add circle layer for points
+            layers.push({
+              id: `${layer.id}_circle_${index}`,
+              type: 'circle',
+              source: layer.id,
+              filter: ['any', 
+                ['==', ['geometry-type'], 'Point'],
+                ['==', ['geometry-type'], 'MultiPoint']
+              ],
+              paint: {
+                'circle-radius': 8,
+                'circle-color': layer.style.fill.color,
+                'circle-opacity': layer.style.fill.opacity,
+                'circle-stroke-color': layer.style.line.color,
+                'circle-stroke-width': layer.style.line.width
+              },
+              layout: {
+                visibility: layer === activeLayer ? 'visible' : 'none'
+              }
+            });
           }
-        ]))
+          
+          if (hasPolygons) {
+            // Add fill layer for polygons
+            layers.push({
+              id: `${layer.id}_fill_${index}`,
+              type: 'fill',
+              source: layer.id,
+              filter: ['any', 
+                ['==', ['geometry-type'], 'Polygon'],
+                ['==', ['geometry-type'], 'MultiPolygon']
+              ],
+              paint: {
+                'fill-color': layer.style.fill.color,
+                'fill-opacity': layer.style.fill.opacity
+              },
+              layout: {
+                visibility: layer === activeLayer ? 'visible' : 'none'
+              }
+            });
+            
+            // Add line layer for polygons
+            layers.push({
+              id: `${layer.id}_line_${index}`,
+              type: 'line',
+              source: layer.id,
+              filter: ['any', 
+                ['==', ['geometry-type'], 'Polygon'],
+                ['==', ['geometry-type'], 'MultiPolygon']
+              ],
+              paint: {
+                'line-color': layer.style.line.color,
+                'line-width': layer.style.line.width
+              },
+              layout: {
+                visibility: layer === activeLayer ? 'visible' : 'none'
+              }
+            });
+          }
+          
+          return layers;
+        })
       ]
     };
   }, [layers, activeLayer]);
@@ -746,6 +845,7 @@ export const MapView: React.FC<MapViewProps> = ({
       try {
         const fillLayerId = `${layer.id}_fill_${index}`;
         const lineLayerId = `${layer.id}_line_${index}`;
+        const circleLayerId = `${layer.id}_circle_${index}`;
 
         // Check if layers exist before trying to modify them
         if (map.getLayer(fillLayerId)) {
@@ -753,6 +853,9 @@ export const MapView: React.FC<MapViewProps> = ({
         }
         if (map.getLayer(lineLayerId)) {
           map.setLayoutProperty(lineLayerId, 'visibility', 'none');
+        }
+        if (map.getLayer(circleLayerId)) {
+          map.setLayoutProperty(circleLayerId, 'visibility', 'none');
         }
       } catch (error) {
         // Layer might not exist yet, ignore error
@@ -769,12 +872,16 @@ export const MapView: React.FC<MapViewProps> = ({
         try {
           const fillLayerId = `${activeLayer.id}_fill_${activeIndex}`;
           const lineLayerId = `${activeLayer.id}_line_${activeIndex}`;
+          const circleLayerId = `${activeLayer.id}_circle_${activeIndex}`;
 
           if (map.getLayer(fillLayerId)) {
             map.setLayoutProperty(fillLayerId, 'visibility', 'visible');
           }
           if (map.getLayer(lineLayerId)) {
             map.setLayoutProperty(lineLayerId, 'visibility', 'visible');
+          }
+          if (map.getLayer(circleLayerId)) {
+            map.setLayoutProperty(circleLayerId, 'visibility', 'visible');
           }
         } catch (error) {
           if (enableDebugLogging) {
@@ -786,7 +893,7 @@ export const MapView: React.FC<MapViewProps> = ({
   }, [activeLayer, layers, enableDebugLogging]);
 
   return (
-    <div 
+    <div
       style={{
         display: 'flex',
         height: '80vh',
@@ -951,12 +1058,16 @@ export const MapView: React.FC<MapViewProps> = ({
                     try {
                       const fillLayerId = `${activeLayer.id}_fill_${activeIndex}`;
                       const lineLayerId = `${activeLayer.id}_line_${activeIndex}`;
+                      const circleLayerId = `${activeLayer.id}_circle_${activeIndex}`;
 
                       if (map.getLayer(fillLayerId)) {
                         map.setLayoutProperty(fillLayerId, 'visibility', 'visible');
                       }
                       if (map.getLayer(lineLayerId)) {
                         map.setLayoutProperty(lineLayerId, 'visibility', 'visible');
+                      }
+                      if (map.getLayer(circleLayerId)) {
+                        map.setLayoutProperty(circleLayerId, 'visibility', 'visible');
                       }
                     } catch (error) {
                       if (enableDebugLogging) {

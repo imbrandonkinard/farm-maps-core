@@ -124,7 +124,7 @@ describe('MapView', () => {
     const store = createMockStore();
     render(
       <Provider store={store}>
-        <MapView 
+        <MapView
           {...defaultProps}
           showNavigationControl={false}
           showControlPanel={false}
@@ -154,7 +154,7 @@ describe('MapView', () => {
 
       // Simulate layer upload by finding the MapView component
       const mapViewElement = screen.getByTestId('map-view');
-      
+
       // Since we can't directly access the component's methods in tests,
       // we'll test the integration through the FeatureSearchPanel
       expect(screen.getByText('Upload GIS Layer')).toBeInTheDocument();
@@ -200,7 +200,7 @@ describe('MapView', () => {
 
       render(
         <Provider store={store}>
-          <MapView 
+          <MapView
             {...defaultProps}
             initialViewState={customViewState}
           />
@@ -212,7 +212,7 @@ describe('MapView', () => {
 
     it('loads default layers on initialization', async () => {
       const store = createMockStore();
-      
+
       render(
         <Provider store={store}>
           <MapView {...defaultProps} enableDebugLogging={true} />
@@ -229,7 +229,7 @@ describe('MapView', () => {
   describe('Feature Drawing', () => {
     it('shows area display when enabled', () => {
       const store = createMockStore();
-      
+
       render(
         <Provider store={store}>
           <MapView {...defaultProps} showAreaDisplay={true} />
@@ -241,7 +241,7 @@ describe('MapView', () => {
 
     it('hides area display when disabled', () => {
       const store = createMockStore();
-      
+
       render(
         <Provider store={store}>
           <MapView {...defaultProps} showAreaDisplay={false} />
@@ -255,7 +255,7 @@ describe('MapView', () => {
   describe('Search Functionality', () => {
     it('shows search panel when enabled', () => {
       const store = createMockStore();
-      
+
       render(
         <Provider store={store}>
           <MapView {...defaultProps} showFeatureSearch={true} />
@@ -267,7 +267,7 @@ describe('MapView', () => {
 
     it('hides search panel when disabled', () => {
       const store = createMockStore();
-      
+
       render(
         <Provider store={store}>
           <MapView {...defaultProps} showFeatureSearch={false} />
@@ -282,7 +282,7 @@ describe('MapView', () => {
     it('calls onMapLoad when map is loaded', async () => {
       const mockOnMapLoad = jest.fn();
       const store = createMockStore();
-      
+
       render(
         <Provider store={store}>
           <MapView {...defaultProps} onMapLoad={mockOnMapLoad} />
@@ -297,7 +297,7 @@ describe('MapView', () => {
     it('calls onFeatureCreate when features are created', () => {
       const mockOnFeatureCreate = jest.fn();
       const store = createMockStore();
-      
+
       render(
         <Provider store={store}>
           <MapView {...defaultProps} onFeatureCreate={mockOnFeatureCreate} />
