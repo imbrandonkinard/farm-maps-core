@@ -59,11 +59,17 @@ export const getLayerFeatureNames = (layer: MapLayer): Array<{ name: string; id:
     return [];
   }
 
-  return layer.data.features.map((feature: GeoJSONFeature) => ({
-    name: feature.properties?.[layer.nameProperty] || 'Unnamed Feature',
-    id: feature.properties?.objectid || feature.properties?.id || feature.id || '',
-    feature
-  }));
+  return layer.data.features.map((feature: GeoJSONFeature) => {
+    // Ensure id is always a string
+    const rawId = feature.properties?.objectid || feature.properties?.id || feature.id;
+    const id = String(rawId || '');
+    
+    return {
+      name: feature.properties?.[layer.nameProperty] || 'Unnamed Feature',
+      id,
+      feature
+    };
+  });
 };
 
 /**
@@ -113,7 +119,7 @@ export const searchAcrossLayers = (
   if (includeLayerNames) {
     layers.forEach(layer => {
       const layerName = caseSensitive ? layer.name : layer.name.toLowerCase();
-      const layerId = caseSensitive ? layer.id : layer.id.toLowerCase();
+      const layerId = caseSensitive ? String(layer.id || '') : String(layer.id || '').toLowerCase();
 
       let matchType: 'exact' | 'contains' | 'fuzzy' = 'contains';
       let relevance = 0;
@@ -175,7 +181,7 @@ export const searchAcrossLayers = (
 
         // Check feature IDs
         if (includeFeatureIds && !matched) {
-          const id = caseSensitive ? featureId : featureId.toLowerCase();
+          const id = caseSensitive ? String(featureId || '') : String(featureId || '').toLowerCase();
           if (id === query) {
             matchType = 'exact';
             relevance = 80;
@@ -236,8 +242,8 @@ export const getSearchSuggestions = (
     if (layer.name.toLowerCase().includes(query)) {
       suggestions.add(layer.name);
     }
-    if (layer.id.toLowerCase().includes(query)) {
-      suggestions.add(layer.id);
+    if (String(layer.id || '').toLowerCase().includes(query)) {
+      suggestions.add(String(layer.id || ''));
     }
   });
 

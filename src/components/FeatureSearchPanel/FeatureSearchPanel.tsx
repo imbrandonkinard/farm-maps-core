@@ -31,10 +31,12 @@ export const FeatureSearchPanel: React.FC<FeatureSearchPanelProps> = (props) => 
   const filteredLayers = useMemo(() => {
     if (!searchQuery.trim() || searchType === 'all') return layers;
 
-    return layers.filter(layer =>
-      layer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      layer.id.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    return layers.filter(layer => {
+      // Ensure id is a string before calling toLowerCase()
+      const layerId = String(layer.id || '');
+      return layer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+             layerId.toLowerCase().includes(searchQuery.toLowerCase());
+    });
   }, [layers, searchQuery, searchType]);
 
   // Filter features based on search query
@@ -45,10 +47,12 @@ export const FeatureSearchPanel: React.FC<FeatureSearchPanelProps> = (props) => 
 
     if (!searchQuery.trim()) return allFeatures;
 
-    return allFeatures.filter(item =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.id.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    return allFeatures.filter(item => {
+      // Ensure id is a string before calling toLowerCase()
+      const itemId = String(item.id || '');
+      return item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+             itemId.toLowerCase().includes(searchQuery.toLowerCase());
+    });
   }, [activeLayer, searchQuery, searchType]);
 
   // Get search suggestions
@@ -351,19 +355,19 @@ export const FeatureSearchPanel: React.FC<FeatureSearchPanelProps> = (props) => 
             (searchType === 'features' && filteredFeatures.length === 0) ||
             (searchType === 'all' && globalSearchResults.length === 0)
           ) && (
-            <div style={{
-              marginTop: '8px',
-              padding: '8px 12px',
-              backgroundColor: '#fff3cd',
-              border: '1px solid #ffeaa7',
-              borderRadius: '4px',
-              fontSize: '12px',
-              color: '#856404',
-              textAlign: 'center'
-            }}>
-              <span>🔍</span> No results found for "{searchQuery}"
-            </div>
-          )}
+              <div style={{
+                marginTop: '8px',
+                padding: '8px 12px',
+                backgroundColor: '#fff3cd',
+                border: '1px solid #ffeaa7',
+                borderRadius: '4px',
+                fontSize: '12px',
+                color: '#856404',
+                textAlign: 'center'
+              }}>
+                <span>🔍</span> No results found for "{searchQuery}"
+              </div>
+            )}
 
           {/* Help Text */}
           <div style={{
