@@ -501,9 +501,14 @@ export const MapView: React.FC<MapViewProps> = ({
       if (features.length > 0) {
         const feature = features[0];
         
-        // Find the corresponding layer
+        if (enableDebugLogging) {
+          console.log('Clicked feature:', feature);
+          console.log('Feature layer ID:', feature.layer.id);
+        }
+
+        // Find the corresponding layer by matching the layer ID pattern
         const layer = layers.find(l => {
-          const layerIds = [];
+          const layerIndex = layers.indexOf(l);
           const hasPoints = l.data.features.some(f =>
             f.geometry.type === 'Point' || f.geometry.type === 'MultiPoint'
           );
@@ -511,31 +516,70 @@ export const MapView: React.FC<MapViewProps> = ({
             f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
           );
 
-          if (hasPoints) {
-            layerIds.push(`${l.id}_circle_${layers.indexOf(l)}`);
+          // Check if this feature belongs to this layer
+          if (hasPoints && feature.layer.id === `${l.id}_circle_${layerIndex}`) {
+            return true;
           }
-          if (hasPolygons) {
-            layerIds.push(`${l.id}_fill_${layers.indexOf(l)}`);
+          if (hasPolygons && feature.layer.id === `${l.id}_fill_${layerIndex}`) {
+            return true;
           }
-          return layerIds.includes(feature.layer.id);
+          return false;
         });
 
         if (layer) {
-          // Find the actual feature data
-          const actualFeature = layer.data.features.find(f => 
-            f.properties && f.properties[layer.nameProperty] === feature.properties?.[layer.nameProperty]
-          );
+          if (enableDebugLogging) {
+            console.log('Found matching layer:', layer.id);
+          }
 
-          if (actualFeature) {
-            // Show popup for the feature
-            if (showPolygonPopup) {
-              setPolygonPopupInfo({
-                feature: actualFeature,
-                position: {
-                  x: e.point.x,
-                  y: e.point.y
-                }
-              });
+          // For point features, we need to find the closest point
+          if (feature.geometry.type === 'Point') {
+            // Find the actual feature data by matching coordinates
+            const clickedCoords = feature.geometry.coordinates as [number, number];
+            const actualFeature = layer.data.features.find(f => {
+              if (f.geometry.type === 'Point') {
+                const featureCoords = f.geometry.coordinates as [number, number];
+                // Check if coordinates match (with small tolerance for floating point precision)
+                return Math.abs(clickedCoords[0] - featureCoords[0]) < 0.000001 &&
+                       Math.abs(clickedCoords[1] - featureCoords[1]) < 0.000001;
+              }
+              return false;
+            });
+
+            if (actualFeature) {
+              if (enableDebugLogging) {
+                console.log('Found matching point feature:', actualFeature);
+              }
+              // Show popup for the point feature
+              if (showPolygonPopup) {
+                setPolygonPopupInfo({
+                  feature: actualFeature,
+                  position: {
+                    x: e.point.x,
+                    y: e.point.y
+                  }
+                });
+              }
+            }
+          } else {
+            // For polygon features, use the existing logic
+            const actualFeature = layer.data.features.find(f =>
+              f.properties && f.properties[layer.nameProperty] === feature.properties?.[layer.nameProperty]
+            );
+
+            if (actualFeature) {
+              if (enableDebugLogging) {
+                console.log('Found matching polygon feature:', actualFeature);
+              }
+              // Show popup for the feature
+              if (showPolygonPopup) {
+                setPolygonPopupInfo({
+                  feature: actualFeature,
+                  position: {
+                    x: e.point.x,
+                    y: e.point.y
+                  }
+                });
+              }
             }
           }
         }
