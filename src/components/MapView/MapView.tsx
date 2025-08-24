@@ -687,7 +687,7 @@ export const MapView: React.FC<MapViewProps> = ({
       try {
         const fillLayerId = `${layer.id}_fill_${index}`;
         const lineLayerId = `${layer.id}_line_${index}`;
-        
+
         // Check if layers exist before trying to modify them
         if (map.getLayer(fillLayerId)) {
           map.setLayoutProperty(fillLayerId, 'visibility', 'none');
@@ -710,7 +710,7 @@ export const MapView: React.FC<MapViewProps> = ({
         try {
           const fillLayerId = `${activeLayer.id}_fill_${activeIndex}`;
           const lineLayerId = `${activeLayer.id}_line_${activeIndex}`;
-          
+
           if (map.getLayer(fillLayerId)) {
             map.setLayoutProperty(fillLayerId, 'visibility', 'visible');
           }
@@ -888,7 +888,7 @@ export const MapView: React.FC<MapViewProps> = ({
                     try {
                       const fillLayerId = `${activeLayer.id}_fill_${activeIndex}`;
                       const lineLayerId = `${activeLayer.id}_line_${activeIndex}`;
-                      
+
                       if (map.getLayer(fillLayerId)) {
                         map.setLayoutProperty(fillLayerId, 'visibility', 'visible');
                       }
@@ -904,7 +904,7 @@ export const MapView: React.FC<MapViewProps> = ({
                 }
               }, 100); // Small delay to ensure layers are ready
             });
-            
+
             // Call onMapLoad callback if provided
             if (onMapLoad) {
               onMapLoad(map);
