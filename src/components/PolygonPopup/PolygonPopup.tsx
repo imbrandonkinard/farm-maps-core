@@ -32,7 +32,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
     const properties = feature.properties || {};
     const isWICLocation = properties.type === 'WIC Location' || feature.id?.startsWith('wic_');
     const isPoint = feature.geometry?.type === 'Point';
-    
+
     if (isWICLocation && isPoint) {
       // WIC Location specific content
       return (
@@ -40,7 +40,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
           <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold', color: '#FF6B35' }}>
             🏪 {properties.name || 'WIC Location'}
           </h4>
-          
+
           <div style={{ marginBottom: '8px' }}>
             <p style={{ margin: '4px 0', fontSize: '12px', color: '#666' }}>
               📍 {properties.address}
