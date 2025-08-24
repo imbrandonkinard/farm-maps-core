@@ -707,24 +707,32 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
     }, 100);
   }, [activeLayer, layers]);
 
-  // Ensure controls persist after layer changes
+    // Ensure controls persist after layer changes
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (!map || !mapLoaded) return;
 
     // Force restore all controls after layer changes
     const restoreControls = () => {
-      // Remove any existing controls first to avoid duplicates
-      const existingDrawControls = map.getContainer().querySelectorAll('.mapboxgl-ctrl-group');
-      existingDrawControls.forEach((control: any) => control.remove());
+      // Check if draw control exists and is functional
+      const existingDrawControl = map.getContainer().querySelector('.mapboxgl-ctrl-group');
+      const drawControlExists = existingDrawControl && drawRef.current;
       
+      // Only remove navigation controls, preserve draw controls
       const existingNavControls = map.getContainer().querySelectorAll('.mapboxgl-ctrl-top-right');
       existingNavControls.forEach((control: any) => control.remove());
 
-      // Re-add draw control
-      if (drawRef.current) {
+      // Ensure draw control is properly positioned and functional
+      if (drawRef.current && !drawControlExists) {
+        // Remove any broken draw controls first
+        const brokenDrawControls = map.getContainer().querySelectorAll('.mapboxgl-ctrl-group');
+        brokenDrawControls.forEach((control: any) => control.remove());
+        
+        // Re-add draw control
         map.addControl(drawRef.current, 'top-left');
-        console.log('Draw control restored');
+        console.log('Draw control restored after layer change');
+      } else if (drawRef.current && drawControlExists) {
+        console.log('Draw control already exists and functional');
       }
 
       // Re-add navigation control using a different approach
@@ -761,7 +769,7 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
     setTimeout(restoreControls, 200);
   }, [activeLayer, mapLoaded]);
 
-  // Continuous control monitoring - check every second if controls are missing
+    // Continuous control monitoring - check every second if controls are missing
   useEffect(() => {
     if (!mapLoaded) return;
 
@@ -772,9 +780,24 @@ export const WorkingMapView: React.FC<WorkingMapViewProps> = ({
       const drawControlExists = map.getContainer().querySelector('.mapboxgl-ctrl-group') !== null;
       const navControlExists = map.getContainer().querySelector('.mapboxgl-ctrl-top-right') !== null;
 
+      // Only restore draw control if it's completely missing and we have a reference
       if (!drawControlExists && drawRef.current) {
         console.log('Draw control missing, restoring...');
+        // Remove any broken controls first
+        const brokenDrawControls = map.getContainer().querySelectorAll('.mapboxgl-ctrl-group');
+        brokenDrawControls.forEach((control: any) => control.remove());
+        
+        // Re-add the draw control
         map.addControl(drawRef.current, 'top-left');
+        console.log('Draw control restored via monitoring');
+      } else if (drawControlExists && drawRef.current) {
+        // Verify the draw control is still functional
+        const drawControl = map.getContainer().querySelector('.mapboxgl-ctrl-group');
+        if (drawControl && !drawControl.querySelector('button')) {
+          console.log('Draw control exists but appears broken, restoring...');
+          drawControl.remove();
+          map.addControl(drawRef.current, 'top-left');
+        }
       }
 
       if (!navControlExists) {
