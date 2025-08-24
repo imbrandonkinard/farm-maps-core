@@ -1,4 +1,5 @@
 import { Map } from 'maplibre-gl';
+import React from 'react';
 
 // GeoJSON Types (defined locally to avoid conflicts)
 export interface GeoJSONGeometry {
@@ -98,12 +99,15 @@ export interface MapViewProps {
   defaultDrawingMode?: string;
   enableDebugLogging?: boolean;
   style?: React.CSSProperties;
+  customPolygonPopupContent?: React.ReactNode;
+  showPolygonPopup?: boolean;
+  onNavigate?: (route: string, featureId: string) => void;
 }
 
 // Control Panel Types
 export interface ControlPanelProps {
   polygons: GeoJSONFeature[];
-  onPolygonClick: (polygon: GeoJSONFeature) => void;
+  onPolygonClick?: (polygon: GeoJSONFeature) => void;
   onDelete: (event: FeatureUpdateEvent) => void;
 }
 
@@ -125,6 +129,17 @@ export interface FeatureSelectPopupProps {
   position: { x: number; y: number };
   onSelect: (feature: GeoJSONFeature) => void;
   onClose: () => void;
+}
+
+export interface PolygonPopupProps {
+  feature: any;
+  position: { x: number; y: number };
+  onClose: () => void;
+  onNavigate?: (route: string, featureId: string) => void;
+  customContent?: React.ReactNode;
+  showDefaultContent?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 // Redux Store Types

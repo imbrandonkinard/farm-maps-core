@@ -4,6 +4,7 @@ import ReactMapGL, { NavigationControl } from 'react-map-gl/maplibre';
 import { ControlPanel } from '../ControlPanel/ControlPanel';
 import { FeatureSearchPanel } from '../FeatureSearchPanel/FeatureSearchPanel';
 import { FeatureSelectPopup } from '../FeatureSelectPopup/FeatureSelectPopup';
+import { PolygonPopup } from '../PolygonPopup';
 import {
   updateFeatures,
   deleteFeatures,
@@ -41,7 +42,10 @@ export const MapView: React.FC<MapViewProps> = ({
     trash: true
   },
   defaultDrawingMode = 'simple_select',
-  enableDebugLogging = false
+  enableDebugLogging = false,
+  customPolygonPopupContent,
+  showPolygonPopup = true,
+  onNavigate
 }) => {
   const dispatch = useDispatch();
   const features = useSelector(selectFeatures);
@@ -85,6 +89,7 @@ export const MapView: React.FC<MapViewProps> = ({
   const [layers, setLayers] = useState<MapLayer[]>([]);
   const [activeLayer, setActiveLayer] = useState<MapLayer | null>(null);
   const [popupInfo, setPopupInfo] = useState<any>(null);
+  const [polygonPopupInfo, setPolygonPopupInfo] = useState<any>(null);
 
   // Debug: Monitor features state changes
   useEffect(() => {
@@ -230,7 +235,7 @@ export const MapView: React.FC<MapViewProps> = ({
     let isDragging = false;
 
     // Add hover handler
-    const onMouseMove = (e) => {
+    const onMouseMove = (e: any) => {
       if (isDragging) return;
 
       const draw = drawRef.current;
@@ -262,7 +267,7 @@ export const MapView: React.FC<MapViewProps> = ({
     };
 
     // Add click handler
-    const onClick = (e) => {
+    const onClick = (e: any) => {
       if (isDragging) return;
 
       const draw = drawRef.current;
@@ -283,7 +288,7 @@ export const MapView: React.FC<MapViewProps> = ({
 
       // Get the full feature objects and sort by ID for consistent ordering
       const features = featureIds
-        .map(id => {
+        .map((id: string) => {
           try {
             const feature = draw.get(id);
             if (!feature) return null;
@@ -300,14 +305,14 @@ export const MapView: React.FC<MapViewProps> = ({
           }
         })
         .filter(Boolean) // Remove any null/undefined features
-        .sort((a, b) => a.id.localeCompare(b.id));
+        .sort((a: any, b: any) => a.id.localeCompare(b.id));
 
       if (features.length === 0) {
         setPopupInfo(null);
         return;
       }
 
-      // Only show popup for overlapping features, otherwise directly select the feature
+      // Only show popup for overlapping features, otherwise show polygon popup
       if (features.length > 1) {
         setPopupInfo({
           features,
@@ -317,8 +322,19 @@ export const MapView: React.FC<MapViewProps> = ({
           }
         });
       } else {
-        // Single feature, select it directly
-        handleFeatureSelection(features[0]);
+        // Single feature, show polygon popup
+        if (showPolygonPopup) {
+          setPolygonPopupInfo({
+            feature: features[0],
+            position: {
+              x: e.point.x,
+              y: e.point.y
+            }
+          });
+        } else {
+          // Fallback to direct selection
+          handleFeatureSelection(features[0]);
+        }
       }
     };
 
@@ -374,7 +390,7 @@ export const MapView: React.FC<MapViewProps> = ({
         if (enableDebugLogging) {
           console.log('No features to draw');
         }
-        dispatch(updateCurrentArea(null));
+        dispatch(updateCurrentArea(0));
       }
     } catch (error) {
       console.error('Error drawing features:', error);
@@ -386,7 +402,7 @@ export const MapView: React.FC<MapViewProps> = ({
     if (enableDebugLogging) {
       console.log('Map initialization effect running');
     }
-    let timeoutId;
+    let timeoutId: NodeJS.Timeout | null = null;
     let retryCount = 0;
     const MAX_RETRIES = 10;
 
@@ -463,7 +479,7 @@ export const MapView: React.FC<MapViewProps> = ({
     }
   }, [features, mapLoaded, drawAllFeatures]);
 
-  const onUpdate = useCallback(e => {
+  const onUpdate = useCallback((e: any) => {
     if (enableDebugLogging) {
       console.log('onUpdate called with event:', e);
     }
@@ -482,7 +498,7 @@ export const MapView: React.FC<MapViewProps> = ({
     dispatch(updateFeatures(allFeatures));
   }, [dispatch, enableDebugLogging]);
 
-  const onDelete = useCallback(e => {
+  const onDelete = useCallback((e: any) => {
     if (enableDebugLogging) {
       console.log('onDelete called with event:', e);
     }
@@ -493,44 +509,9 @@ export const MapView: React.FC<MapViewProps> = ({
     dispatch(deleteFeatures(features));
   }, [dispatch, enableDebugLogging]);
 
-  const onPolygonClick = useCallback(polygon => {
-    // Get the current state of the polygon from draw control
-    const draw = drawRef.current;
-    if (!draw) return;
 
-    // Get the current feature from draw control using the ID from Redux
-    const currentFeature = draw.get(polygon.id);
-    if (!currentFeature) return;
 
-    // Use the current coordinates from draw control
-    const coordinates = currentFeature.geometry.coordinates[0];
-    const bounds = coordinates.reduce(
-      (bounds, coord) => {
-        return {
-          minLng: Math.min(bounds.minLng, coord[0]),
-          maxLng: Math.max(bounds.maxLng, coord[0]),
-          minLat: Math.min(bounds.minLat, coord[1]),
-          maxLat: Math.max(bounds.maxLat, coord[1])
-        };
-      },
-      {
-        minLng: Infinity,
-        maxLng: -Infinity,
-        minLat: Infinity,
-        maxLat: -Infinity
-      }
-    );
-
-    mapRef.current?.getMap().fitBounds(
-      [
-        [bounds.minLng, bounds.minLat],
-        [bounds.maxLng, bounds.maxLat]
-      ],
-      { padding: 50 }
-    );
-  }, []);
-
-  const handleFeatureSelect = useCallback((feature) => {
+  const handleFeatureSelect = useCallback((feature: any) => {
     if (!feature.geometry || !feature.geometry.coordinates) return;
 
     // For MultiPolygon, use the first polygon
@@ -540,7 +521,7 @@ export const MapView: React.FC<MapViewProps> = ({
 
     // Calculate bounds
     const bounds = coordinates.reduce(
-      (bounds, coord) => {
+      (bounds: any, coord: any) => {
         return {
           minLng: Math.min(bounds.minLng, coord[0]),
           maxLng: Math.max(bounds.maxLng, coord[0]),
@@ -569,7 +550,7 @@ export const MapView: React.FC<MapViewProps> = ({
     );
   }, []);
 
-  const handleFeatureSelection = useCallback((feature) => {
+  const handleFeatureSelection = useCallback((feature: any) => {
     // Select the feature in DrawControl
     if (drawRef.current) {
       drawRef.current.changeMode('simple_select', { featureIds: [feature.id] });
@@ -582,7 +563,7 @@ export const MapView: React.FC<MapViewProps> = ({
         : feature.geometry.coordinates[0];
 
       const bounds = coordinates.reduce(
-        (bounds, coord) => {
+        (bounds: any, coord: any) => {
           return {
             minLng: Math.min(bounds.minLng, coord[0]),
             maxLng: Math.max(bounds.maxLng, coord[0]),
@@ -777,14 +758,14 @@ export const MapView: React.FC<MapViewProps> = ({
         <ReactMapGL
           ref={mapRef}
           initialViewState={initialViewState}
-          mapStyle={dynamicMapStyle}
+          mapStyle={dynamicMapStyle as any}
           mapLib={import('maplibre-gl')}
           dragPan={true}
           dragRotate={false}
           touchPitch={false}
           doubleClickZoom={false}
           style={{ width: '100%', height: '100%' }}
-          onLoad={(event) => {
+          onLoad={(event: any) => {
             const map = event.target;
             setMapLoaded(true);
 
@@ -806,11 +787,11 @@ export const MapView: React.FC<MapViewProps> = ({
             drawRef.current = draw;
 
             // Add event listeners
-            map.on('draw.create', (e) => {
+            map.on('draw.create', (e: any) => {
               if (enableDebugLogging) {
                 console.log('Draw create event:', e);
                 console.log('Raw features from MapboxDraw:', e.features);
-                console.log('Feature structure check:', e.features.map(f => ({
+                console.log('Feature structure check:', e.features.map((f: any) => ({
                   id: f.id,
                   idType: typeof f.id,
                   hasId: !!f.id,
@@ -820,14 +801,14 @@ export const MapView: React.FC<MapViewProps> = ({
                 })));
               }
 
-              const enhancedFeatures = e.features.map(f => ({
+              const enhancedFeatures = e.features.map((f: any) => ({
                 ...f,
                 properties: { ...f.properties, name: `Field ${f.id.slice(0, 6)}` }
               }));
 
               if (enableDebugLogging) {
                 console.log('Enhanced features:', enhancedFeatures);
-                console.log('Features have IDs:', enhancedFeatures.map(f => f.id));
+                console.log('Features have IDs:', enhancedFeatures.map((f: any) => f.id));
               }
 
               // Dispatch Redux action to add new features
@@ -843,7 +824,7 @@ export const MapView: React.FC<MapViewProps> = ({
               }
             });
 
-            map.on('draw.update', (e) => {
+            map.on('draw.update', (e: any) => {
               if (enableDebugLogging) {
                 console.log('Draw update event:', e);
               }
@@ -856,7 +837,7 @@ export const MapView: React.FC<MapViewProps> = ({
               }
             });
 
-            map.on('draw.delete', (e) => {
+            map.on('draw.delete', (e: any) => {
               if (enableDebugLogging) {
                 console.log('Draw delete event:', e);
               }
@@ -869,14 +850,14 @@ export const MapView: React.FC<MapViewProps> = ({
               }
             });
 
-            map.on('draw.selectionchange', (e) => {
+            map.on('draw.selectionchange', (e: any) => {
               if (e.features && e.features.length > 0) {
                 draw.changeMode('direct_select', { featureId: e.features[0].id });
               }
             });
 
             // Add style load event handler
-            map.on('style.load', () => {
+            map.on('style.load', (e: any) => {
               if (enableDebugLogging) {
                 console.log('Map style loaded, updating layer visibility');
               }
@@ -929,6 +910,18 @@ export const MapView: React.FC<MapViewProps> = ({
             onClose={() => setPopupInfo(null)}
           />
         )}
+
+        {/* Polygon Popup */}
+        {polygonPopupInfo && showPolygonPopup && (
+          <PolygonPopup
+            feature={polygonPopupInfo.feature}
+            position={polygonPopupInfo.position}
+            onClose={() => setPolygonPopupInfo(null)}
+            onNavigate={onNavigate}
+            customContent={customPolygonPopupContent}
+            showDefaultContent={!customPolygonPopupContent}
+          />
+        )}
       </div>
       {showControlPanel && (
         <div style={{
@@ -953,7 +946,6 @@ export const MapView: React.FC<MapViewProps> = ({
           }}>
             <ControlPanel
               polygons={features}
-              onPolygonClick={onPolygonClick}
               onDelete={onDelete}
             />
           </div>

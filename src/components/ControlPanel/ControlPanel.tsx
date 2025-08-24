@@ -5,7 +5,7 @@ import { calculateAreaInAcres } from '../../utils/geometry';
 
 export interface ControlPanelProps {
   polygons: any[];
-  onPolygonClick: (polygon: any) => void;
+  onPolygonClick?: (polygon: any) => void;
   onDelete: (event: any) => void;
 }
 
@@ -78,7 +78,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               flexDirection: 'column',
               gap: '4px'
             }}
-            onClick={() => onPolygonClick(polygon)}
+            onClick={() => onPolygonClick?.(polygon)}
           >
             {editingId === polygon.id ? (
               <input

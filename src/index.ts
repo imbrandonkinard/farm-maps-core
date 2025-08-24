@@ -4,6 +4,7 @@ export { MapView } from './components/MapView/MapView';
 export { ControlPanel } from './components/ControlPanel/ControlPanel';
 export { FeatureSearchPanel } from './components/FeatureSearchPanel/FeatureSearchPanel';
 export { FeatureSelectPopup } from './components/FeatureSelectPopup/FeatureSelectPopup';
+export { PolygonPopup } from './components/PolygonPopup';
 
 // Hooks - Removed due to React dependency conflicts
 // export { useMapFeatures } from './hooks/useMapFeatures';
@@ -114,6 +115,7 @@ export type {
   ControlPanelProps,
   FeatureSearchPanelProps,
   FeatureSelectPopupProps,
+  PolygonPopupProps,
   MapState,
   UseMapFeaturesReturn,
   UseMapLayersReturn,
