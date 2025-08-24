@@ -301,43 +301,7 @@ export const MapView: React.FC<MapViewProps> = ({
         });
 
         // Load School Districts layer after School Complex Areas is loaded
-        // Load WIC Locations layer after School Districts is loaded
-        return fetch("/WIC_Locations.geojson");
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        if (enableDebugLogging) {
-          console.log("WIC Locations data:", data);
-        }
-        const wicLocationsLayer = {
-          id: "wic_locations_layer",
-          name: "WIC Locations",
-          data: data,
-          nameProperty: "name",
-          style: {
-            fill: {
-              color: "#FF6B35",
-              opacity: 0.8
-            },
-            line: {
-              color: "#FF6B35",
-              width: 1
-            }
-          }
-        };
-        setLayers(prevLayers => {
-          // Check if layer already exists
-          const exists = prevLayers.some(layer => layer.id === wicLocationsLayer.id);
-          if (exists) {
-            return prevLayers;
-          }
-          return [...prevLayers, wicLocationsLayer];
-        });        return fetch('/School_Districts.geojson');
+        return fetch('/School_Districts.geojson');
       })
       .then(response => {
         if (!response.ok) {
@@ -372,6 +336,44 @@ export const MapView: React.FC<MapViewProps> = ({
             return prevLayers;
           }
           return [...prevLayers, schoolDistrictLayer];
+        });
+
+        // Load WIC Locations layer after School Districts is loaded
+        return fetch('/WIC_Locations.geojson');
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (enableDebugLogging) {
+          console.log('WIC Locations data:', data);
+        }
+        const wicLocationsLayer = {
+          id: 'wic_locations_layer',
+          name: 'WIC Locations',
+          data: data,
+          nameProperty: 'name',
+          style: {
+            fill: {
+              color: '#FF6B35',
+              opacity: 0.8
+            },
+            line: {
+              color: '#FF6B35',
+              width: 1
+            }
+          }
+        };
+        setLayers(prevLayers => {
+          // Check if layer already exists
+          const exists = prevLayers.some(layer => layer.id === wicLocationsLayer.id);
+          if (exists) {
+            return prevLayers;
+          }
+          return [...prevLayers, wicLocationsLayer];
         });
       })
       .catch(error => {
