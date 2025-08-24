@@ -106,7 +106,7 @@ export const MapView: React.FC<MapViewProps> = ({
     if (enableDebugLogging) {
       console.log('Handling layer upload:', uploadedLayer);
     }
-    
+
     // Add the uploaded layer to the layers array
     setLayers(prevLayers => {
       const newLayers = [...prevLayers, uploadedLayer];
@@ -115,10 +115,10 @@ export const MapView: React.FC<MapViewProps> = ({
       }
       return newLayers;
     });
-    
+
     // Set the uploaded layer as active
     setActiveLayer(uploadedLayer);
-    
+
     // Add the new layer to the map if it's already loaded
     const map = mapRef.current?.getMap();
     if (map && map.isStyleLoaded()) {
@@ -130,18 +130,18 @@ export const MapView: React.FC<MapViewProps> = ({
             data: uploadedLayer.data
           });
         }
-        
+
         // Add the new layers based on geometry type
         const layerIndex = layers.length; // Use the current length as index
-        
+
         // Check if this layer contains points, polygons, or both
-        const hasPoints = uploadedLayer.data.features.some(f => 
+        const hasPoints = uploadedLayer.data.features.some(f =>
           f.geometry.type === 'Point' || f.geometry.type === 'MultiPoint'
         );
-        const hasPolygons = uploadedLayer.data.features.some(f => 
+        const hasPolygons = uploadedLayer.data.features.some(f =>
           f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
         );
-        
+
         if (hasPoints) {
           // Add circle layer for points
           const circleLayerId = `${uploadedLayer.id}_circle_${layerIndex}`;
@@ -149,7 +149,7 @@ export const MapView: React.FC<MapViewProps> = ({
             id: circleLayerId,
             type: 'circle',
             source: uploadedLayer.id,
-            filter: ['any', 
+            filter: ['any',
               ['==', ['geometry-type'], 'Point'],
               ['==', ['geometry-type'], 'MultiPoint']
             ],
@@ -164,12 +164,12 @@ export const MapView: React.FC<MapViewProps> = ({
               visibility: 'visible'
             }
           });
-          
+
           if (enableDebugLogging) {
             console.log('Added circle layer for points:', circleLayerId);
           }
         }
-        
+
         if (hasPolygons) {
           // Add fill layer for polygons
           const fillLayerId = `${uploadedLayer.id}_fill_${layerIndex}`;
@@ -177,7 +177,7 @@ export const MapView: React.FC<MapViewProps> = ({
             id: fillLayerId,
             type: 'fill',
             source: uploadedLayer.id,
-            filter: ['any', 
+            filter: ['any',
               ['==', ['geometry-type'], 'Polygon'],
               ['==', ['geometry-type'], 'MultiPolygon']
             ],
@@ -189,14 +189,14 @@ export const MapView: React.FC<MapViewProps> = ({
               visibility: 'visible'
             }
           });
-          
+
           // Add line layer for polygons
           const lineLayerId = `${uploadedLayer.id}_line_${layerIndex}`;
           map.addLayer({
             id: lineLayerId,
             type: 'line',
             source: uploadedLayer.id,
-            filter: ['any', 
+            filter: ['any',
               ['==', ['geometry-type'], 'Polygon'],
               ['==', ['geometry-type'], 'MultiPolygon']
             ],
@@ -208,12 +208,12 @@ export const MapView: React.FC<MapViewProps> = ({
               visibility: 'visible'
             }
           });
-          
+
           if (enableDebugLogging) {
             console.log('Added fill and line layers for polygons:', fillLayerId, lineLayerId);
           }
         }
-        
+
         if (enableDebugLogging) {
           console.log('Successfully added uploaded layer to map:', uploadedLayer.id);
           console.log('Layer contains points:', hasPoints, 'polygons:', hasPolygons);
@@ -222,7 +222,7 @@ export const MapView: React.FC<MapViewProps> = ({
         console.error('Error adding uploaded layer to map:', error);
       }
     }
-    
+
     // Call the callback if provided
     if (onLayerUpload) {
       onLayerUpload(uploadedLayer);
@@ -756,22 +756,22 @@ export const MapView: React.FC<MapViewProps> = ({
         },
         ...layers.flatMap((layer, index) => {
           const layers = [];
-          
+
           // Check if this layer contains points, polygons, or both
-          const hasPoints = layer.data.features.some(f => 
+          const hasPoints = layer.data.features.some(f =>
             f.geometry.type === 'Point' || f.geometry.type === 'MultiPoint'
           );
-          const hasPolygons = layer.data.features.some(f => 
+          const hasPolygons = layer.data.features.some(f =>
             f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
           );
-          
+
           if (hasPoints) {
             // Add circle layer for points
             layers.push({
               id: `${layer.id}_circle_${index}`,
               type: 'circle',
               source: layer.id,
-              filter: ['any', 
+              filter: ['any',
                 ['==', ['geometry-type'], 'Point'],
                 ['==', ['geometry-type'], 'MultiPoint']
               ],
@@ -787,14 +787,14 @@ export const MapView: React.FC<MapViewProps> = ({
               }
             });
           }
-          
+
           if (hasPolygons) {
             // Add fill layer for polygons
             layers.push({
               id: `${layer.id}_fill_${index}`,
               type: 'fill',
               source: layer.id,
-              filter: ['any', 
+              filter: ['any',
                 ['==', ['geometry-type'], 'Polygon'],
                 ['==', ['geometry-type'], 'MultiPolygon']
               ],
@@ -806,13 +806,13 @@ export const MapView: React.FC<MapViewProps> = ({
                 visibility: layer === activeLayer ? 'visible' : 'none'
               }
             });
-            
+
             // Add line layer for polygons
             layers.push({
               id: `${layer.id}_line_${index}`,
               type: 'line',
               source: layer.id,
-              filter: ['any', 
+              filter: ['any',
                 ['==', ['geometry-type'], 'Polygon'],
                 ['==', ['geometry-type'], 'MultiPolygon']
               ],
@@ -825,7 +825,7 @@ export const MapView: React.FC<MapViewProps> = ({
               }
             });
           }
-          
+
           return layers;
         })
       ]
