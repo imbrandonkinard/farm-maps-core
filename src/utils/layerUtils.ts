@@ -63,7 +63,7 @@ export const getLayerFeatureNames = (layer: MapLayer): Array<{ name: string; id:
     // Ensure id is always a string
     const rawId = feature.properties?.objectid || feature.properties?.id || feature.id;
     const id = String(rawId || '');
-    
+
     return {
       name: feature.properties?.[layer.nameProperty] || 'Unnamed Feature',
       id,

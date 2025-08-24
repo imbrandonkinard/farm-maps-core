@@ -35,7 +35,7 @@ export const FeatureSearchPanel: React.FC<FeatureSearchPanelProps> = (props) => 
       // Ensure id is a string before calling toLowerCase()
       const layerId = String(layer.id || '');
       return layer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             layerId.toLowerCase().includes(searchQuery.toLowerCase());
+        layerId.toLowerCase().includes(searchQuery.toLowerCase());
     });
   }, [layers, searchQuery, searchType]);
 
@@ -51,7 +51,7 @@ export const FeatureSearchPanel: React.FC<FeatureSearchPanelProps> = (props) => 
       // Ensure id is a string before calling toLowerCase()
       const itemId = String(item.id || '');
       return item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             itemId.toLowerCase().includes(searchQuery.toLowerCase());
+        itemId.toLowerCase().includes(searchQuery.toLowerCase());
     });
   }, [activeLayer, searchQuery, searchType]);
 
