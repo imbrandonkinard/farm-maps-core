@@ -64,7 +64,7 @@ export const UploadGISLayer: React.FC<UploadGISLayerProps> = ({
     try {
       const file = files[0];
       const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-      
+
       if (!acceptedFileTypes.includes(fileExtension)) {
         throw new Error(`Unsupported file type: ${fileExtension}. Supported types: ${acceptedFileTypes.join(', ')}`);
       }
@@ -82,7 +82,7 @@ export const UploadGISLayer: React.FC<UploadGISLayerProps> = ({
 
       // Process the file based on type
       const layer = await processFile(file);
-      
+
       clearInterval(progressInterval);
       setUploadProgress(100);
 
@@ -102,7 +102,7 @@ export const UploadGISLayer: React.FC<UploadGISLayerProps> = ({
 
   const processFile = async (file: File): Promise<MapLayer> => {
     const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-    
+
     switch (fileExtension) {
       case '.csv':
         return await processCSV(file);
@@ -123,15 +123,15 @@ export const UploadGISLayer: React.FC<UploadGISLayerProps> = ({
     const text = await file.text();
     const lines = text.split('\n');
     const headers = lines[0].split(',').map(h => h.trim());
-    
+
     // Look for common coordinate column names
-    const latIndex = headers.findIndex(h => 
+    const latIndex = headers.findIndex(h =>
       ['lat', 'latitude', 'y', 'ycoord'].includes(h.toLowerCase())
     );
-    const lngIndex = headers.findIndex(h => 
+    const lngIndex = headers.findIndex(h =>
       ['lng', 'longitude', 'x', 'xcoord'].includes(h.toLowerCase())
     );
-    
+
     if (latIndex === -1 || lngIndex === -1) {
       throw new Error('CSV must contain latitude and longitude columns');
     }
@@ -140,7 +140,7 @@ export const UploadGISLayer: React.FC<UploadGISLayerProps> = ({
       const values = line.split(',').map(v => v.trim());
       const lat = parseFloat(values[latIndex]);
       const lng = parseFloat(values[lngIndex]);
-      
+
       if (isNaN(lat) || isNaN(lng)) {
         return null;
       }
@@ -182,13 +182,13 @@ export const UploadGISLayer: React.FC<UploadGISLayerProps> = ({
   const processGeoJSON = async (file: File): Promise<MapLayer> => {
     const text = await file.text();
     const data = JSON.parse(text);
-    
+
     if (data.type !== 'FeatureCollection' && data.type !== 'Feature') {
       throw new Error('Invalid GeoJSON file');
     }
 
     const features = data.type === 'FeatureCollection' ? data.features : [data];
-    
+
     return {
       id: `uploaded_${Date.now()}`,
       name: file.name.replace(/\.[^/.]+$/, ''),
@@ -212,25 +212,25 @@ export const UploadGISLayer: React.FC<UploadGISLayerProps> = ({
 
   const processKML = async (file: File): Promise<MapLayer> => {
     const text = await file.text();
-    
+
     // Simple KML parsing - in production, you'd want a proper KML parser
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(text, 'text/xml');
-    
+
     const placemarks = xmlDoc.getElementsByTagName('Placemark');
     const features: any[] = [];
-    
+
     for (let i = 0; i < placemarks.length; i++) {
       const placemark = placemarks[i];
       const name = placemark.getElementsByTagName('name')[0]?.textContent || `Placemark ${i + 1}`;
       const coordinates = placemark.getElementsByTagName('coordinates')[0]?.textContent;
-      
+
       if (coordinates) {
         const coords = coordinates.trim().split(/\s+/).map(coord => {
           const [lng, lat] = coord.split(',').map(Number);
           return [lng, lat];
         });
-        
+
         features.push({
           type: 'Feature',
           geometry: {
@@ -241,7 +241,7 @@ export const UploadGISLayer: React.FC<UploadGISLayerProps> = ({
         });
       }
     }
-    
+
     return {
       id: `uploaded_${Date.now()}`,
       name: file.name.replace(/\.[^/.]+$/, ''),

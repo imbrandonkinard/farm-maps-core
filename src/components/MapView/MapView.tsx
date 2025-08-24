@@ -119,11 +119,64 @@ export const MapView: React.FC<MapViewProps> = ({
     // Set the uploaded layer as active
     setActiveLayer(uploadedLayer);
     
+    // Add the new layer to the map if it's already loaded
+    const map = mapRef.current?.getMap();
+    if (map && map.isStyleLoaded()) {
+      try {
+        // Add the new source
+        if (!map.getSource(uploadedLayer.id)) {
+          map.addSource(uploadedLayer.id, {
+            type: 'geojson',
+            data: uploadedLayer.data
+          });
+        }
+        
+        // Add the new layers
+        const layerIndex = layers.length; // Use the current length as index
+        const fillLayerId = `${uploadedLayer.id}_fill_${layerIndex}`;
+        const lineLayerId = `${uploadedLayer.id}_line_${layerIndex}`;
+        
+        // Add fill layer
+        map.addLayer({
+          id: fillLayerId,
+          type: 'fill',
+          source: uploadedLayer.id,
+          paint: {
+            'fill-color': uploadedLayer.style.fill.color,
+            'fill-opacity': uploadedLayer.style.fill.opacity
+          },
+          layout: {
+            visibility: 'visible' // Make the new layer visible
+          }
+        });
+        
+        // Add line layer
+        map.addLayer({
+          id: lineLayerId,
+          type: 'line',
+          source: uploadedLayer.id,
+          paint: {
+            'line-color': uploadedLayer.style.line.color,
+            'line-width': uploadedLayer.style.line.width
+          },
+          layout: {
+            visibility: 'visible' // Make the new layer visible
+          }
+        });
+        
+        if (enableDebugLogging) {
+          console.log('Successfully added uploaded layer to map:', uploadedLayer.id);
+        }
+      } catch (error) {
+        console.error('Error adding uploaded layer to map:', error);
+      }
+    }
+    
     // Call the callback if provided
     if (onLayerUpload) {
       onLayerUpload(uploadedLayer);
     }
-  }, [onLayerUpload, enableDebugLogging]);
+  }, [onLayerUpload, enableDebugLogging, layers.length]);
 
   // Load layer data
   useEffect(() => {
@@ -733,12 +786,15 @@ export const MapView: React.FC<MapViewProps> = ({
   }, [activeLayer, layers, enableDebugLogging]);
 
   return (
-    <div style={{
-      display: 'flex',
-      height: '80vh',
-      width: '100%',
-      backgroundColor: '#f5f5f5'
-    }}>
+    <div 
+      style={{
+        display: 'flex',
+        height: '80vh',
+        width: '100%',
+        backgroundColor: '#f5f5f5'
+      }}
+      data-testid="map-view"
+    >
       {showFeatureSearch && (
         <FeatureSearchPanel
           layers={layers}
