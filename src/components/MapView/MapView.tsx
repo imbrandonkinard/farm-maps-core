@@ -368,7 +368,7 @@ export const MapView: React.FC<MapViewProps> = ({
             return prevLayers;
           }
           const newLayers = [...prevLayers, wicLocationsLayer];
-          
+
           // Set WIC layer as active when it's loaded
           setActiveLayer(wicLocationsLayer);
 
@@ -1220,7 +1220,7 @@ export const MapView: React.FC<MapViewProps> = ({
       try {
         // Find all layers that belong to this layer by checking the map
         const mapLayers = map.getStyle().layers || [];
-        const layerLayers = mapLayers.filter((mapLayer: any) => 
+        const layerLayers = mapLayers.filter((mapLayer: any) =>
           mapLayer.id.startsWith(layer.id + '_')
         );
 
@@ -1244,21 +1244,21 @@ export const MapView: React.FC<MapViewProps> = ({
     // Show active layer
     if (activeLayer) {
       try {
-                 // Find all layers that belong to the active layer
-         const mapLayers = map.getStyle().layers || [];
-         const activeLayerLayers = mapLayers.filter((mapLayer: any) => 
-           mapLayer.id.startsWith(activeLayer.id + '_')
-         );
+        // Find all layers that belong to the active layer
+        const mapLayers = map.getStyle().layers || [];
+        const activeLayerLayers = mapLayers.filter((mapLayer: any) =>
+          mapLayer.id.startsWith(activeLayer.id + '_')
+        );
 
-                 activeLayerLayers.forEach((mapLayer: any) => {
-           if (map.getLayer(mapLayer.id)) {
-             map.setLayoutProperty(mapLayer.id, 'visibility', 'visible');
-           }
-         });
+        activeLayerLayers.forEach((mapLayer: any) => {
+          if (map.getLayer(mapLayer.id)) {
+            map.setLayoutProperty(mapLayer.id, 'visibility', 'visible');
+          }
+        });
 
-         if (enableDebugLogging) {
-           console.log(`Showing ${activeLayerLayers.length} layers for active layer ${activeLayer.id}:`, activeLayerLayers.map((l: any) => l.id));
-         }
+        if (enableDebugLogging) {
+          console.log(`Showing ${activeLayerLayers.length} layers for active layer ${activeLayer.id}:`, activeLayerLayers.map((l: any) => l.id));
+        }
       } catch (error) {
         if (enableDebugLogging) {
           console.log('Active layer not ready yet:', activeLayer.id);
