@@ -245,7 +245,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
             </div>
           )}
 
-                    {/* Details button to navigate to feature details */}
+          {/* Details button to navigate to feature details */}
           <button
             onClick={() => {
               if (onNavigate) {
@@ -270,7 +270,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
           >
             Details
           </button>
-          
+
           {/* Show details directly only if no navigation handler and details are toggled */}
           {!onNavigate && showDetails && renderFeatureDetails()}
         </div>
@@ -311,7 +311,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
             </div>
           )}
 
-                    {/* Details button to navigate to feature details */}
+          {/* Details button to navigate to feature details */}
           <button
             onClick={() => {
               if (onNavigate) {
@@ -336,7 +336,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
           >
             Details
           </button>
-          
+
           {/* Show details directly only if no navigation handler and details are toggled */}
           {!onNavigate && showDetails && renderFeatureDetails()}
         </div>
@@ -351,7 +351,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
           <p style={{ margin: '4px 0', fontSize: '12px', color: '#666' }}>
             Area: {properties.area} acres
           </p>
-                    {/* Details button to navigate to feature details */}
+          {/* Details button to navigate to feature details */}
           <button
             onClick={() => {
               if (onNavigate) {
@@ -376,7 +376,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
           >
             Details
           </button>
-          
+
           {/* Show details directly only if no navigation handler and details are toggled */}
           {!onNavigate && showDetails && renderFeatureDetails()}
         </div>
@@ -393,7 +393,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
               {properties.description}
             </p>
           )}
-                    {/* Details button to navigate to feature details */}
+          {/* Details button to navigate to feature details */}
           <button
             onClick={() => {
               if (onNavigate) {
@@ -418,7 +418,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
           >
             Details
           </button>
-          
+
           {/* Show details directly only if no navigation handler and details are toggled */}
           {!onNavigate && showDetails && renderFeatureDetails()}
         </div>
