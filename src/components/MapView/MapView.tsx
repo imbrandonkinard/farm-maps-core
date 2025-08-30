@@ -851,7 +851,10 @@ export const MapView: React.FC<MapViewProps> = ({
                 properties: feature.properties || {},
                 geometry: feature.geometry,
                 source: 'layer',
-                layerId: layer.id
+                layerId: layer.id,
+                layerName: layer.name,
+                layerColor: layer.style.fill.color,
+                layerStyle: layer.style
               };
             });
 
@@ -962,7 +965,14 @@ export const MapView: React.FC<MapViewProps> = ({
                 name: feature.properties?.name || `Field ${feature.id.slice(0, 6)}`,
                 properties: feature.properties || {},
                 geometry: feature.geometry,
-                source: 'drawn'
+                source: 'drawn',
+                layerId: 'drawn_features',
+                layerName: 'Drawn Features',
+                layerColor: '#007cba', // Default blue for drawn features
+                layerStyle: {
+                  fill: { color: '#007cba', opacity: 0.3 },
+                  line: { color: '#007cba', width: 2 }
+                }
               };
             } catch (error) {
               console.error('Error getting drawn feature:', error);

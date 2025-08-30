@@ -1,4 +1,5 @@
 import React from 'react';
+import { getColorInfo } from '../../utils/colorPalette';
 
 export interface PolygonPopupProps {
   feature: any;
@@ -35,62 +36,97 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
     }
   };
 
-  // Determine feature type and corresponding colors
+    // Determine feature type and corresponding colors
   const getFeatureTypeInfo = () => {
     const properties = feature.properties || {};
     const isWICLocation = properties.type === 'WIC Location' || feature.id?.startsWith('wic_') || feature.layerId === 'wic_locations_layer';
     const isLayerFeature = feature.source === 'layer';
     const isDrawnFeature = feature.source === 'drawn' || !isLayerFeature;
     
+    // Get the layer's actual color from the feature or layer data
+    let layerColor = '#666666'; // Default gray
+    let layerName = 'Unknown Layer';
+    
+    // Try to get color from feature's layer information
+    if (feature.layerColor) {
+      layerColor = feature.layerColor;
+    } else if (feature.layerStyle?.fill?.color) {
+      layerColor = feature.layerStyle.fill.color;
+    } else if (feature.layerStyle?.line?.color) {
+      layerColor = feature.layerStyle.line.color;
+    }
+    
+    // Try to get layer name
+    if (feature.layerName) {
+      layerName = feature.layerName;
+    }
+    
+    // Get color information
+    const colorInfo = getColorInfo(layerColor);
+    
     // Check layer ID to determine specific type
     if (isWICLocation) {
       return {
         type: 'WIC Location',
-        color: '#FF6B35', // Orange
+        color: layerColor,
+        colorName: colorInfo.name,
         icon: '🏪',
-        description: 'WIC (Women, Infants, and Children) nutrition program location'
+        description: 'WIC (Women, Infants, and Children) nutrition program location',
+        layerName: layerName
       };
     } else if (feature.layerId === 'boundary_ahupuaa_layer') {
       return {
         type: 'Ahupuaa Boundary',
-        color: '#088', // Teal
+        color: layerColor,
+        colorName: colorInfo.name,
         icon: '🏔️',
-        description: 'Traditional Hawaiian land division boundary'
+        description: 'Traditional Hawaiian land division boundary',
+        layerName: layerName
       };
     } else if (feature.layerId === 'complex_area_school_layer') {
       return {
         type: 'School Complex Area',
-        color: '#800080', // Purple
+        color: layerColor,
+        colorName: colorInfo.name,
         icon: '🏫',
-        description: 'School complex administrative area'
+        description: 'School complex administrative area',
+        layerName: layerName
       };
     } else if (feature.layerId === 'district_school_layer') {
       return {
         type: 'School District',
-        color: '#008000', // Green
+        color: layerColor,
+        colorName: colorInfo.name,
         icon: '🎓',
-        description: 'School district boundary'
+        description: 'School district boundary',
+        layerName: layerName
       };
     } else if (isLayerFeature) {
       return {
         type: 'GIS Layer Feature',
-        color: '#6B46C1', // Purple
+        color: layerColor,
+        colorName: colorInfo.name,
         icon: '📍',
-        description: 'Feature from uploaded GIS data'
+        description: 'Feature from uploaded GIS data',
+        layerName: layerName
       };
     } else if (isDrawnFeature) {
       return {
         type: 'Drawn Feature',
-        color: '#007cba', // Blue
+        color: layerColor,
+        colorName: colorInfo.name,
         icon: '✏️',
-        description: 'User-drawn feature on the map'
+        description: 'User-drawn feature on the map',
+        layerName: 'Drawn Features'
       };
     } else {
       return {
         type: 'Unknown Feature',
-        color: '#666666', // Gray
+        color: layerColor,
+        colorName: colorInfo.name,
         icon: '❓',
-        description: 'Feature type not determined'
+        description: 'Feature type not determined',
+        layerName: layerName
       };
     }
   };
@@ -330,6 +366,9 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
             </span>
             <span style={{ fontSize: '10px', color: '#999', fontStyle: 'italic' }}>
               {featureTypeInfo.description}
+            </span>
+            <span style={{ fontSize: '9px', color: featureTypeInfo.color, fontWeight: '500' }}>
+              Layer: {featureTypeInfo.layerName} • Color: {featureTypeInfo.colorName}
             </span>
           </div>
           <button
