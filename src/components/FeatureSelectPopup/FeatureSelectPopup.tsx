@@ -9,6 +9,16 @@ export const FeatureSelectPopup: React.FC<FeatureSelectPopupProps> = (props) => 
     return null;
   }
 
+  // Debug logging to understand feature structure
+  console.log('FeatureSelectPopup features:', features.map((f, i) => ({
+    index: i,
+    id: f.id,
+    featureId: f.feature?.id,
+    name: f.name,
+    featureName: f.feature?.name,
+    hasFeature: !!f.feature
+  })));
+
   return React.createElement('div', {
     style: {
       position: 'absolute',
@@ -36,10 +46,11 @@ export const FeatureSelectPopup: React.FC<FeatureSelectPopupProps> = (props) => 
       }
     }, 'Select Field'),
     ...features.map((feature, index) => {
-      // Ensure we have a unique key for each feature
-      const featureKey = feature.id || feature.feature?.id || `feature-${index}-${Date.now()}`;
-      const featureName = feature.name || feature.feature?.name || `Field ${feature.id?.slice(0, 6) || 'Unknown'}`;
-      
+      // Generate a unique key for each feature
+      const featureId = feature.id || feature.feature?.id;
+      const featureKey = featureId ? `feature-${featureId}` : `feature-index-${index}`;
+      const featureName = feature.name || feature.feature?.name || `Field ${String(featureId || '').slice(0, 6) || 'Unknown'}`;
+
       return React.createElement('div', {
         key: featureKey,
         onClick: () => onSelect(feature.feature || feature),

@@ -1303,7 +1303,7 @@ export const MapView: React.FC<MapViewProps> = ({
     if (feature.geometry && feature.geometry.coordinates) {
       try {
         let coordinates: any;
-        
+
         if (feature.geometry.type === 'Point') {
           // For Point geometry, coordinates is [lng, lat]
           coordinates = [feature.geometry.coordinates];
