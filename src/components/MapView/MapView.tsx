@@ -863,7 +863,7 @@ export const MapView: React.FC<MapViewProps> = ({
           if (queryResult.length > 0) {
             layerFeatures = queryResult.map((feature: any) => {
               // Find which layer this feature belongs to
-              const sourceLayer = layers.find(layerData => 
+              const sourceLayer = layers.find(layerData =>
                 feature.layer.id.startsWith(layerData.id + '_')
               );
 
@@ -898,8 +898,23 @@ export const MapView: React.FC<MapViewProps> = ({
         return;
       }
 
+      // Log feature click detection
+      console.log('🎯 Feature click detected!', {
+        totalFeatures: allFeatures.length,
+        drawnFeatures: drawnFeatures.length,
+        layerFeatures: layerFeatures.length,
+        features: allFeatures.map(f => ({
+          id: f.id,
+          name: f.name,
+          source: f.source,
+          layerId: f.layerId,
+          geometryType: f.geometry?.type
+        }))
+      });
+
       // Only show popup for overlapping features, otherwise show polygon popup
       if (allFeatures.length > 1) {
+        console.log('📋 Showing feature selection popup for overlapping features');
         setPopupInfo({
           features: allFeatures,
           position: {
@@ -910,6 +925,7 @@ export const MapView: React.FC<MapViewProps> = ({
       } else {
         // Single feature, show polygon popup
         if (showPolygonPopup) {
+          console.log('📍 Showing polygon popup for single feature:', allFeatures[0].name);
           setPolygonPopupInfo({
             feature: allFeatures[0],
             position: {
@@ -918,6 +934,7 @@ export const MapView: React.FC<MapViewProps> = ({
             }
           });
         } else {
+          console.log('🎯 Direct feature selection for:', allFeatures[0].name);
           // Fallback to direct selection
           handleFeatureSelection(allFeatures[0]);
         }
