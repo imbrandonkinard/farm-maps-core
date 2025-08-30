@@ -35,10 +35,72 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
     }
   };
 
+  // Determine feature type and corresponding colors
+  const getFeatureTypeInfo = () => {
+    const properties = feature.properties || {};
+    const isWICLocation = properties.type === 'WIC Location' || feature.id?.startsWith('wic_') || feature.layerId === 'wic_locations_layer';
+    const isLayerFeature = feature.source === 'layer';
+    const isDrawnFeature = feature.source === 'drawn' || !isLayerFeature;
+    
+    // Check layer ID to determine specific type
+    if (isWICLocation) {
+      return {
+        type: 'WIC Location',
+        color: '#FF6B35', // Orange
+        icon: '🏪',
+        description: 'WIC (Women, Infants, and Children) nutrition program location'
+      };
+    } else if (feature.layerId === 'boundary_ahupuaa_layer') {
+      return {
+        type: 'Ahupuaa Boundary',
+        color: '#088', // Teal
+        icon: '🏔️',
+        description: 'Traditional Hawaiian land division boundary'
+      };
+    } else if (feature.layerId === 'complex_area_school_layer') {
+      return {
+        type: 'School Complex Area',
+        color: '#800080', // Purple
+        icon: '🏫',
+        description: 'School complex administrative area'
+      };
+    } else if (feature.layerId === 'district_school_layer') {
+      return {
+        type: 'School District',
+        color: '#008000', // Green
+        icon: '🎓',
+        description: 'School district boundary'
+      };
+    } else if (isLayerFeature) {
+      return {
+        type: 'GIS Layer Feature',
+        color: '#6B46C1', // Purple
+        icon: '📍',
+        description: 'Feature from uploaded GIS data'
+      };
+    } else if (isDrawnFeature) {
+      return {
+        type: 'Drawn Feature',
+        color: '#007cba', // Blue
+        icon: '✏️',
+        description: 'User-drawn feature on the map'
+      };
+    } else {
+      return {
+        type: 'Unknown Feature',
+        color: '#666666', // Gray
+        icon: '❓',
+        description: 'Feature type not determined'
+      };
+    }
+  };
+
+  const featureTypeInfo = getFeatureTypeInfo();
+
   // Determine feature type and render appropriate content
   const renderFeatureContent = () => {
     const properties = feature.properties || {};
-    const isWICLocation = properties.type === 'WIC Location' || feature.id?.startsWith('wic_');
+    const isWICLocation = featureTypeInfo.type === 'WIC Location';
     const isLayerFeature = feature.source === 'layer';
     const isPoint = feature.geometry?.type === 'Point';
 
@@ -46,8 +108,8 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
       // WIC Location specific content
       return (
         <div style={{ padding: '8px 0' }}>
-          <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold', color: '#FF6B35' }}>
-            🏪 {properties.name || 'WIC Location'}
+          <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold', color: featureTypeInfo.color }}>
+            {featureTypeInfo.icon} {properties.name || 'WIC Location'}
           </h4>
 
           <div style={{ marginBottom: '8px' }}>
@@ -80,7 +142,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
                 style={{
                   padding: '8px 12px',
                   fontSize: '12px',
-                  backgroundColor: '#FF6B35',
+                  backgroundColor: featureTypeInfo.color,
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
@@ -99,8 +161,8 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
       // Layer feature content (from uploaded GIS data)
       return (
         <div style={{ padding: '8px 0' }}>
-          <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold', color: '#6B46C1' }}>
-            📍 {feature.name || 'Layer Feature'}
+          <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold', color: featureTypeInfo.color }}>
+            {featureTypeInfo.icon} {feature.name || 'Layer Feature'}
           </h4>
 
           <div style={{ marginBottom: '8px' }}>
@@ -138,7 +200,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
                 style={{
                   padding: '8px 12px',
                   fontSize: '12px',
-                  backgroundColor: '#6B46C1',
+                  backgroundColor: featureTypeInfo.color,
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
@@ -157,8 +219,8 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
       // Farm field content (existing logic)
       return (
         <div style={{ padding: '8px 0' }}>
-          <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 'bold' }}>
-            {properties.name || `Field ${feature.id.slice(0, 6)}`}
+          <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 'bold', color: featureTypeInfo.color }}>
+            {featureTypeInfo.icon} {properties.name || `Field ${feature.id.slice(0, 6)}`}
           </h4>
           <p style={{ margin: '4px 0', fontSize: '12px', color: '#666' }}>
             Area: {properties.area} acres
@@ -170,7 +232,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
                 style={{
                   padding: '4px 8px',
                   fontSize: '11px',
-                  backgroundColor: '#007cba',
+                  backgroundColor: featureTypeInfo.color,
                   color: 'white',
                   border: 'none',
                   borderRadius: '3px',
@@ -202,8 +264,8 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
       // Generic feature content
       return (
         <div style={{ padding: '8px 0' }}>
-          <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 'bold' }}>
-            {properties.name || `Feature ${feature.id?.slice(0, 6) || 'Unknown'}`}
+          <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 'bold', color: featureTypeInfo.color }}>
+            {featureTypeInfo.icon} {properties.name || `Feature ${feature.id?.slice(0, 6) || 'Unknown'}`}
           </h4>
           {properties.description && (
             <p style={{ margin: '4px 0', fontSize: '12px', color: '#666' }}>
@@ -217,7 +279,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
                 style={{
                   padding: '4px 8px',
                   fontSize: '11px',
-                  backgroundColor: '#007cba',
+                  backgroundColor: featureTypeInfo.color,
                   color: 'white',
                   border: 'none',
                   borderRadius: '3px',
@@ -250,7 +312,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
         left: position.x + 10,
         top: position.y - 10,
         backgroundColor: 'white',
-        border: '3px solid #ff0000', // Red border for debugging
+        border: `3px solid ${featureTypeInfo.color}`, // Dynamic border color based on feature type
         borderRadius: '6px',
         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
         zIndex: 10000, // Higher z-index
@@ -262,9 +324,14 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
     >
       <div style={{ padding: '8px 12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <span style={{ fontSize: '12px', color: '#666' }}>
-            {feature.properties?.type || 'Feature Information'}
-          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '12px', color: featureTypeInfo.color, fontWeight: 'bold' }}>
+              {featureTypeInfo.icon} {featureTypeInfo.type}
+            </span>
+            <span style={{ fontSize: '10px', color: '#999', fontStyle: 'italic' }}>
+              {featureTypeInfo.description}
+            </span>
+          </div>
           <button
             onClick={onClose}
             style={{
