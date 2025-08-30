@@ -712,6 +712,13 @@ export const MapView: React.FC<MapViewProps> = ({
     }
   }, [layers, enableDebugLogging]);
 
+  // Add debugging for popup state changes
+  useEffect(() => {
+    if (enableDebugLogging) {
+      console.log('polygonPopupInfo state changed:', polygonPopupInfo);
+    }
+  }, [polygonPopupInfo, enableDebugLogging]);
+
   useEffect(() => {
     if (enableDebugLogging) {
       console.log('Active layer changed:', activeLayer);
@@ -787,14 +794,14 @@ export const MapView: React.FC<MapViewProps> = ({
     // Add layer-specific click handlers for each layer
     layers.forEach(layer => {
       // Get all map layers that belong to this layer
-      const mapLayers = map.getStyle().layers.filter((mapLayer: any) => 
+      const mapLayers = map.getStyle().layers.filter((mapLayer: any) =>
         mapLayer.id.startsWith(layer.id + '_')
       );
 
       mapLayers.forEach((mapLayer: any) => {
         // Remove existing handler if it exists
         map.off('click', mapLayer.id);
-        
+
         // Add new click handler for this specific layer
         map.on('click', mapLayer.id, (e: any) => {
           if (isDragging) return;
@@ -864,13 +871,15 @@ export const MapView: React.FC<MapViewProps> = ({
             if (features.length === 1) {
               if (showPolygonPopup) {
                 console.log('📍 Showing polygon popup for layer feature:', features[0].name);
-                setPolygonPopupInfo({
+                const popupData = {
                   feature: features[0],
                   position: {
                     x: e.point.x,
                     y: e.point.y
                   }
-                });
+                };
+                console.log('Setting polygonPopupInfo to:', popupData);
+                setPolygonPopupInfo(popupData);
               } else {
                 console.log('🎯 Direct feature selection for layer feature:', features[0].name);
                 handleFeatureSelection(features[0]);
@@ -1629,14 +1638,25 @@ export const MapView: React.FC<MapViewProps> = ({
 
         {/* Polygon Popup */}
         {polygonPopupInfo && showPolygonPopup && (
-          <PolygonPopup
-            feature={polygonPopupInfo.feature}
-            position={polygonPopupInfo.position}
-            onClose={() => setPolygonPopupInfo(null)}
-            onNavigate={onNavigate}
-            customContent={customPolygonPopupContent}
-            showDefaultContent={!customPolygonPopupContent}
-          />
+          <>
+            {enableDebugLogging && console.log('🎨 Rendering PolygonPopup with:', {
+              feature: polygonPopupInfo.feature,
+              position: polygonPopupInfo.position,
+              showPolygonPopup,
+              customPolygonPopupContent: !!customPolygonPopupContent
+            })}
+            <PolygonPopup
+              feature={polygonPopupInfo.feature}
+              position={polygonPopupInfo.position}
+              onClose={() => {
+                if (enableDebugLogging) console.log('🚪 Closing PolygonPopup');
+                setPolygonPopupInfo(null);
+              }}
+              onNavigate={onNavigate}
+              customContent={customPolygonPopupContent}
+              showDefaultContent={!customPolygonPopupContent}
+            />
+          </>
         )}
       </div>
       {showControlPanel && (
