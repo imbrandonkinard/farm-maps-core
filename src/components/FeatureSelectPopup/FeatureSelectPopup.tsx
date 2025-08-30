@@ -35,9 +35,13 @@ export const FeatureSelectPopup: React.FC<FeatureSelectPopupProps> = (props) => 
         fontSize: '14px'
       }
     }, 'Select Field'),
-    ...features.map((feature, index) =>
-      React.createElement('div', {
-        key: feature.id || `feature-${index}`,
+    ...features.map((feature, index) => {
+      // Ensure we have a unique key for each feature
+      const featureKey = feature.id || feature.feature?.id || `feature-${index}-${Date.now()}`;
+      const featureName = feature.name || feature.feature?.name || `Field ${feature.id?.slice(0, 6) || 'Unknown'}`;
+      
+      return React.createElement('div', {
+        key: featureKey,
         onClick: () => onSelect(feature.feature || feature),
         style: {
           padding: '8px',
@@ -46,8 +50,8 @@ export const FeatureSelectPopup: React.FC<FeatureSelectPopupProps> = (props) => 
           backgroundColor: '#fff',
           marginBottom: index < features.length - 1 ? '4px' : 0
         }
-      }, feature.name || `Field ${feature.id?.slice(0, 6) || 'Unknown'}`)
-    ),
+      }, featureName);
+    }),
     React.createElement('button', {
       onClick: onClose,
       style: {

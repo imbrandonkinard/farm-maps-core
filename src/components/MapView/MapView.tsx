@@ -1301,37 +1301,56 @@ export const MapView: React.FC<MapViewProps> = ({
 
     // Update the view to focus on the selected feature
     if (feature.geometry && feature.geometry.coordinates) {
-      const coordinates = feature.geometry.type === 'MultiPolygon'
-        ? feature.geometry.coordinates[0][0]
-        : feature.geometry.coordinates[0];
-
-      const bounds = coordinates.reduce(
-        (bounds: any, coord: any) => {
-          return {
-            minLng: Math.min(bounds.minLng, coord[0]),
-            maxLng: Math.max(bounds.maxLng, coord[0]),
-            minLat: Math.min(bounds.minLat, coord[1]),
-            maxLat: Math.max(bounds.maxLat, coord[1])
-          };
-        },
-        {
-          minLng: Infinity,
-          maxLng: -Infinity,
-          minLat: Infinity,
-          maxLat: -Infinity
+      try {
+        let coordinates: any;
+        
+        if (feature.geometry.type === 'Point') {
+          // For Point geometry, coordinates is [lng, lat]
+          coordinates = [feature.geometry.coordinates];
+        } else if (feature.geometry.type === 'MultiPolygon') {
+          coordinates = feature.geometry.coordinates[0][0];
+        } else if (feature.geometry.type === 'Polygon') {
+          coordinates = feature.geometry.coordinates[0];
+        } else {
+          // For other geometry types, try to use coordinates directly
+          coordinates = feature.geometry.coordinates;
         }
-      );
 
-      mapRef.current?.getMap().fitBounds(
-        [
-          [bounds.minLng, bounds.minLat],
-          [bounds.maxLng, bounds.maxLat]
-        ],
-        {
-          padding: 50,
-          duration: 1000
+        // Ensure coordinates is an array before calling reduce
+        if (Array.isArray(coordinates) && coordinates.length > 0) {
+          const bounds = coordinates.reduce(
+            (bounds: any, coord: any) => {
+              return {
+                minLng: Math.min(bounds.minLng, coord[0]),
+                maxLng: Math.max(bounds.maxLng, coord[0]),
+                minLat: Math.min(bounds.minLat, coord[1]),
+                maxLat: Math.max(bounds.maxLat, coord[1])
+              };
+            },
+            {
+              minLng: Infinity,
+              maxLng: -Infinity,
+              minLat: Infinity,
+              maxLat: -Infinity
+            }
+          );
+
+          mapRef.current?.getMap().fitBounds(
+            [
+              [bounds.minLng, bounds.minLat],
+              [bounds.maxLng, bounds.maxLat]
+            ],
+            {
+              padding: 50,
+              duration: 1000
+            }
+          );
+        } else {
+          console.warn('Invalid coordinates structure for feature:', feature.id, feature.geometry);
         }
-      );
+      } catch (error) {
+        console.error('Error focusing on feature:', error, feature);
+      }
     }
 
     // Close the popup
