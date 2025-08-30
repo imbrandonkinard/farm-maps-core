@@ -35,7 +35,7 @@ export const FeatureSelectPopup: React.FC<FeatureSelectPopupProps> = (props) => 
       pointerEvents: 'auto',
       border: '1px solid #ddd'
     }
-  }, 
+  },
     React.createElement('div', {
       key: 'header',
       style: {

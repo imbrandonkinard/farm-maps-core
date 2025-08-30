@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { getColorInfo } from '../../utils/colorPalette';
 
 export interface PolygonPopupProps {
@@ -22,6 +22,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
   className = '',
   style = {}
 }) => {
+  const [showDetails, setShowDetails] = useState(false);
   // Debug logging
   console.log('🎨 PolygonPopup component rendering with:', {
     feature: feature,
@@ -244,8 +245,25 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
             </div>
           )}
 
-          {/* Always show feature details instead of navigation */}
-          {renderFeatureDetails()}
+          {/* Details button to show/hide feature details */}
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            style={{
+              backgroundColor: featureTypeInfo.color,
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '6px 12px',
+              fontSize: '12px',
+              cursor: 'pointer',
+              marginTop: '8px',
+              fontWeight: 'bold'
+            }}
+          >
+            {showDetails ? 'Hide Details' : 'Details'}
+          </button>
+          
+          {showDetails && renderFeatureDetails()}
         </div>
       );
     } else if (isLayerFeature) {
@@ -284,8 +302,25 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
             </div>
           )}
 
-          {/* Always show feature details instead of navigation */}
-          {renderFeatureDetails()}
+          {/* Details button to show/hide feature details */}
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            style={{
+              backgroundColor: featureTypeInfo.color,
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '6px 12px',
+              fontSize: '12px',
+              cursor: 'pointer',
+              marginTop: '8px',
+              fontWeight: 'bold'
+            }}
+          >
+            {showDetails ? 'Hide Details' : 'Details'}
+          </button>
+          
+          {showDetails && renderFeatureDetails()}
         </div>
       );
     } else if (properties.area) {
@@ -298,8 +333,25 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
           <p style={{ margin: '4px 0', fontSize: '12px', color: '#666' }}>
             Area: {properties.area} acres
           </p>
-          {/* Always show feature details instead of navigation */}
-          {renderFeatureDetails()}
+          {/* Details button to show/hide feature details */}
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            style={{
+              backgroundColor: featureTypeInfo.color,
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '6px 12px',
+              fontSize: '12px',
+              cursor: 'pointer',
+              marginTop: '8px',
+              fontWeight: 'bold'
+            }}
+          >
+            {showDetails ? 'Hide Details' : 'Details'}
+          </button>
+          
+          {showDetails && renderFeatureDetails()}
         </div>
       );
     } else {
@@ -314,8 +366,25 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
               {properties.description}
             </p>
           )}
-          {/* Always show feature details instead of navigation */}
-          {renderFeatureDetails()}
+          {/* Details button to show/hide feature details */}
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            style={{
+              backgroundColor: featureTypeInfo.color,
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '6px 12px',
+              fontSize: '12px',
+              cursor: 'pointer',
+              marginTop: '8px',
+              fontWeight: 'bold'
+            }}
+          >
+            {showDetails ? 'Hide Details' : 'Details'}
+          </button>
+          
+          {showDetails && renderFeatureDetails()}
         </div>
       );
     }
