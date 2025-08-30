@@ -94,7 +94,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
           <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold', color: '#6B46C1' }}>
             📍 {feature.name || 'Layer Feature'}
           </h4>
-          
+
           <div style={{ marginBottom: '8px' }}>
             <p style={{ margin: '4px 0', fontSize: '12px', color: '#666' }}>
               <strong>Type:</strong> {feature.geometry?.type || 'Unknown'}

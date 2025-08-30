@@ -740,16 +740,24 @@ export const MapView: React.FC<MapViewProps> = ({
 
       // Check for drawn features first
       const drawnFeatureIds = draw.getFeatureIdsAt(e.point);
-      
+
       // Check for layer features
       let hasLayerFeatures = false;
-      if (activeLayer && activeLayer.data && activeLayer.data.features) {
-        const queryResult = map.queryRenderedFeatures(e.point, {
-          layers: map.getStyle().layers
-            .filter((layer: any) => layer.id.startsWith(activeLayer.id + '_'))
-            .map((layer: any) => layer.id)
-        });
-        hasLayerFeatures = queryResult.length > 0;
+      if (layers.length > 0) {
+        // Get all layer IDs that could contain features
+        const allLayerIds = map.getStyle().layers
+          .filter((layer: any) => {
+            // Check if this layer belongs to any of our uploaded layers
+            return layers.some(layerData => layer.id.startsWith(layerData.id + '_'));
+          })
+          .map((layer: any) => layer.id);
+
+        if (allLayerIds.length > 0) {
+          const queryResult = map.queryRenderedFeatures(e.point, {
+            layers: allLayerIds
+          });
+          hasLayerFeatures = queryResult.length > 0;
+        }
       }
 
       // Change cursor if hovering over any features
@@ -819,32 +827,65 @@ export const MapView: React.FC<MapViewProps> = ({
 
       // Check for layer features (from uploaded GIS data)
       let layerFeatures: any[] = [];
-      if (activeLayer && activeLayer.data && activeLayer.data.features) {
-        // Query all visible layers for features at the click point
-        const queryResult = map.queryRenderedFeatures(e.point, {
-          layers: map.getStyle().layers
-            .filter((layer: any) => layer.id.startsWith(activeLayer.id + '_'))
-            .map((layer: any) => layer.id)
-        });
+      if (layers.length > 0) {
+        if (enableDebugLogging) {
+          console.log('Available layers:', layers.map(l => l.id));
+          console.log('Map style layers:', map.getStyle().layers.map((l: any) => l.id));
+        }
 
-        if (queryResult.length > 0) {
-          layerFeatures = queryResult.map((feature: any) => {
-            // Find the original feature from the layer data
-            const originalFeature = activeLayer.data.features.find((f: any) => 
-              f.properties && feature.properties && 
-              JSON.stringify(f.properties) === JSON.stringify(feature.properties)
-            );
+        // Get all layer IDs that could contain features
+        const allLayerIds = map.getStyle().layers
+          .filter((layer: any) => {
+            // Check if this layer belongs to any of our uploaded layers
+            return layers.some(layerData => layer.id.startsWith(layerData.id + '_'));
+          })
+          .map((layer: any) => layer.id);
 
-            return {
-              id: feature.id || `layer_${Math.random().toString(36).substr(2, 9)}`,
-              name: feature.properties?.name || feature.properties?.Name || 
-                    feature.properties?.NAME || `Layer Feature ${Math.random().toString(36).substr(2, 6)}`,
-              properties: feature.properties || {},
-              geometry: feature.geometry,
-              source: 'layer',
-              layerId: activeLayer.id
-            };
+        if (enableDebugLogging) {
+          console.log('Filtered layer IDs for query:', allLayerIds);
+        }
+
+        if (allLayerIds.length > 0) {
+          if (enableDebugLogging) {
+            console.log('Querying layers for features:', allLayerIds);
+            console.log('Click point:', e.point);
+          }
+
+          // Query all visible layers for features at the click point
+          const queryResult = map.queryRenderedFeatures(e.point, {
+            layers: allLayerIds
           });
+
+          if (enableDebugLogging) {
+            console.log('Query result:', queryResult);
+          }
+
+          if (queryResult.length > 0) {
+            layerFeatures = queryResult.map((feature: any) => {
+              // Find which layer this feature belongs to
+              const sourceLayer = layers.find(layerData => 
+                feature.layer.id.startsWith(layerData.id + '_')
+              );
+
+              if (!sourceLayer) return null;
+
+              // Find the original feature from the layer data
+              const originalFeature = sourceLayer.data.features.find((f: any) =>
+                f.properties && feature.properties &&
+                JSON.stringify(f.properties) === JSON.stringify(feature.properties)
+              );
+
+              return {
+                id: feature.id || `layer_${Math.random().toString(36).substr(2, 9)}`,
+                name: feature.properties?.name || feature.properties?.Name ||
+                  feature.properties?.NAME || `Layer Feature ${Math.random().toString(36).substr(2, 6)}`,
+                properties: feature.properties || {},
+                geometry: feature.geometry,
+                source: 'layer',
+                layerId: sourceLayer.id
+              };
+            }).filter(Boolean); // Remove any null results
+          }
         }
       }
 

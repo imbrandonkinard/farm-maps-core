@@ -35,20 +35,20 @@ describe('LayerFeaturePopup', () => {
 
   it('should render layer feature popup with correct title', () => {
     render(<PolygonPopup {...defaultProps} />);
-    
+
     expect(screen.getByText('📍 Test Layer Feature')).toBeInTheDocument();
   });
 
   it('should display feature type and layer information', () => {
     render(<PolygonPopup {...defaultProps} />);
-    
+
     expect(screen.getByText('Type: Point')).toBeInTheDocument();
     expect(screen.getByText('Layer: test_layer')).toBeInTheDocument();
   });
 
   it('should display feature properties', () => {
     render(<PolygonPopup {...defaultProps} />);
-    
+
     expect(screen.getByText('Properties:')).toBeInTheDocument();
     expect(screen.getByText('name: Test Layer Feature')).toBeInTheDocument();
     expect(screen.getByText('type: Test Type')).toBeInTheDocument();
@@ -72,7 +72,7 @@ describe('LayerFeaturePopup', () => {
     };
 
     render(<PolygonPopup {...defaultProps} feature={featureWithManyProperties} />);
-    
+
     expect(screen.getByText('prop1: value1')).toBeInTheDocument();
     expect(screen.getByText('prop2: value2')).toBeInTheDocument();
     expect(screen.getByText('prop3: value3')).toBeInTheDocument();
@@ -83,7 +83,7 @@ describe('LayerFeaturePopup', () => {
 
   it('should render View Layer Details button when onNavigate is provided', () => {
     render(<PolygonPopup {...defaultProps} />);
-    
+
     const button = screen.getByText('🔍 View Layer Details');
     expect(button).toBeInTheDocument();
     expect(button).toHaveStyle({
@@ -94,16 +94,16 @@ describe('LayerFeaturePopup', () => {
 
   it('should call onNavigate when View Layer Details button is clicked', () => {
     render(<PolygonPopup {...defaultProps} />);
-    
+
     const button = screen.getByText('🔍 View Layer Details');
     fireEvent.click(button);
-    
+
     expect(mockOnNavigate).toHaveBeenCalledWith('/layer-feature-details', 'test_feature');
   });
 
   it('should not render View Layer Details button when onNavigate is not provided', () => {
     render(<PolygonPopup {...defaultProps} onNavigate={undefined} />);
-    
+
     expect(screen.queryByText('🔍 View Layer Details')).not.toBeInTheDocument();
   });
 
@@ -122,7 +122,7 @@ describe('LayerFeaturePopup', () => {
     };
 
     render(<PolygonPopup {...defaultProps} feature={polygonFeature} />);
-    
+
     expect(screen.getByText('📍 Test Polygon')).toBeInTheDocument();
     expect(screen.getByText('Type: Polygon')).toBeInTheDocument();
     expect(screen.getByText('area: 200')).toBeInTheDocument();
@@ -135,7 +135,7 @@ describe('LayerFeaturePopup', () => {
     };
 
     render(<PolygonPopup {...defaultProps} feature={minimalFeature} />);
-    
+
     expect(screen.getByText('📍 Test Layer Feature')).toBeInTheDocument();
     expect(screen.getByText('Type: Point')).toBeInTheDocument();
     expect(screen.getByText('Layer: test_layer')).toBeInTheDocument();
@@ -149,7 +149,7 @@ describe('LayerFeaturePopup', () => {
     };
 
     render(<PolygonPopup {...defaultProps} feature={featureWithoutLayerId} />);
-    
+
     expect(screen.getByText('Layer: Unknown')).toBeInTheDocument();
   });
 
@@ -160,22 +160,22 @@ describe('LayerFeaturePopup', () => {
     };
 
     render(<PolygonPopup {...defaultProps} feature={featureWithoutGeometry} />);
-    
+
     expect(screen.getByText('Type: Unknown')).toBeInTheDocument();
   });
 
   it('should call onClose when close button is clicked', () => {
     render(<PolygonPopup {...defaultProps} />);
-    
+
     const closeButton = screen.getByText('×');
     fireEvent.click(closeButton);
-    
+
     expect(mockOnClose).toHaveBeenCalled();
   });
 
   it('should render with correct styling for layer features', () => {
     render(<PolygonPopup {...defaultProps} />);
-    
+
     const popup = screen.getByText('📍 Test Layer Feature').closest('div');
     expect(popup).toHaveStyle({
       backgroundColor: 'white',
@@ -201,7 +201,7 @@ describe('LayerFeaturePopup', () => {
     };
 
     render(<PolygonPopup {...defaultProps} feature={featureWithMixedProperties} />);
-    
+
     expect(screen.getByText('stringProp: string value')).toBeInTheDocument();
     expect(screen.getByText('numberProp: 123')).toBeInTheDocument();
     expect(screen.getByText('booleanProp: true')).toBeInTheDocument();
