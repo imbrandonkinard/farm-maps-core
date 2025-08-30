@@ -37,8 +37,8 @@ export const FeatureSelectPopup: React.FC<FeatureSelectPopupProps> = (props) => 
     }, 'Select Field'),
     ...features.map((feature, index) =>
       React.createElement('div', {
-        key: feature.id,
-        onClick: () => onSelect(feature.feature),
+        key: feature.id || `feature-${index}`,
+        onClick: () => onSelect(feature.feature || feature),
         style: {
           padding: '8px',
           cursor: 'pointer',

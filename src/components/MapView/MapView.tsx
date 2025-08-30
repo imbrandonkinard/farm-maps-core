@@ -1279,9 +1279,24 @@ export const MapView: React.FC<MapViewProps> = ({
   }, []);
 
   const handleFeatureSelection = useCallback((feature: any) => {
+    // Validate feature exists and has required properties
+    if (!feature) {
+      console.error('handleFeatureSelection: feature is undefined');
+      return;
+    }
+
+    if (!feature.id) {
+      console.error('handleFeatureSelection: feature.id is undefined', feature);
+      return;
+    }
+
     // Select the feature in DrawControl
     if (drawRef.current) {
-      drawRef.current.changeMode('simple_select', { featureIds: [feature.id] });
+      try {
+        drawRef.current.changeMode('simple_select', { featureIds: [feature.id] });
+      } catch (error) {
+        console.error('Error selecting feature in DrawControl:', error);
+      }
     }
 
     // Update the view to focus on the selected feature

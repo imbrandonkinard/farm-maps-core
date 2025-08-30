@@ -39,6 +39,9 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
         // Fallback: show feature details instead of navigating
         console.log('Showing feature details instead of navigating');
       }
+    } else {
+      // No navigation function provided, feature details are shown instead
+      console.log('No navigation function provided, showing feature details');
     }
   };
 
@@ -142,24 +145,24 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
   // Render comprehensive feature details
   const renderFeatureDetails = () => {
     const properties = feature.properties || {};
-    
+
     return (
-      <div style={{ 
-        marginTop: '12px', 
-        padding: '8px', 
-        backgroundColor: '#f8f9fa', 
+      <div style={{
+        marginTop: '12px',
+        padding: '8px',
+        backgroundColor: '#f8f9fa',
         borderRadius: '4px',
         border: `1px solid ${featureTypeInfo.color}20`
       }}>
-        <h5 style={{ 
-          margin: '0 0 8px 0', 
-          fontSize: '12px', 
-          fontWeight: 'bold', 
-          color: featureTypeInfo.color 
+        <h5 style={{
+          margin: '0 0 8px 0',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          color: featureTypeInfo.color
         }}>
           📋 Feature Details
         </h5>
-        
+
         <div style={{ fontSize: '11px', color: '#666' }}>
           <p style={{ margin: '2px 0' }}>
             <strong>Feature ID:</strong> {feature.id}
@@ -179,7 +182,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
           <p style={{ margin: '2px 0' }}>
             <strong>Source:</strong> {feature.source || 'Unknown'}
           </p>
-          
+
           {/* Display all available properties */}
           {Object.keys(properties).length > 0 && (
             <div style={{ marginTop: '8px' }}>
