@@ -732,9 +732,28 @@ export const MapView: React.FC<MapViewProps> = ({
       const draw = drawRef.current;
       if (!draw) return;
 
-      // Use MapboxDraw's built-in feature detection
-      const featureIds = draw.getFeatureIdsAt(e.point);
-      if (featureIds.length > 0) {
+      // Don't change cursor if we're in drawing mode
+      const currentMode = draw.getMode();
+      if (currentMode === 'draw_polygon' || currentMode === 'direct_select') {
+        return;
+      }
+
+      // Check for drawn features first
+      const drawnFeatureIds = draw.getFeatureIdsAt(e.point);
+      
+      // Check for layer features
+      let hasLayerFeatures = false;
+      if (activeLayer && activeLayer.data && activeLayer.data.features) {
+        const queryResult = map.queryRenderedFeatures(e.point, {
+          layers: map.getStyle().layers
+            .filter((layer: any) => layer.id.startsWith(activeLayer.id + '_'))
+            .map((layer: any) => layer.id)
+        });
+        hasLayerFeatures = queryResult.length > 0;
+      }
+
+      // Change cursor if hovering over any features
+      if (drawnFeatureIds.length > 0 || hasLayerFeatures) {
         map.getCanvas().style.cursor = 'pointer';
       } else {
         map.getCanvas().style.cursor = isDragging ? 'grab' : '';
@@ -770,43 +789,78 @@ export const MapView: React.FC<MapViewProps> = ({
         return;
       }
 
-      // Use MapboxDraw's built-in feature detection
-      const featureIds = draw.getFeatureIdsAt(e.point);
-      if (featureIds.length === 0) {
-        setPopupInfo(null);
-        return;
+      // Check for drawn features first
+      const drawnFeatureIds = draw.getFeatureIdsAt(e.point);
+      let drawnFeatures: any[] = [];
+
+      if (drawnFeatureIds.length > 0) {
+        // Get the full feature objects and sort by ID for consistent ordering
+        drawnFeatures = drawnFeatureIds
+          .map((id: string) => {
+            try {
+              const feature = draw.get(id);
+              if (!feature) return null;
+
+              return {
+                id: feature.id,
+                name: feature.properties?.name || `Field ${feature.id.slice(0, 6)}`,
+                properties: feature.properties || {},
+                geometry: feature.geometry,
+                source: 'drawn'
+              };
+            } catch (error) {
+              console.error('Error getting drawn feature:', error);
+              return null;
+            }
+          })
+          .filter(Boolean) // Remove any null/undefined features
+          .sort((a: any, b: any) => a.id.localeCompare(b.id));
       }
 
-      // Get the full feature objects and sort by ID for consistent ordering
-      const features = featureIds
-        .map((id: string) => {
-          try {
-            const feature = draw.get(id);
-            if (!feature) return null;
+      // Check for layer features (from uploaded GIS data)
+      let layerFeatures: any[] = [];
+      if (activeLayer && activeLayer.data && activeLayer.data.features) {
+        // Query all visible layers for features at the click point
+        const queryResult = map.queryRenderedFeatures(e.point, {
+          layers: map.getStyle().layers
+            .filter((layer: any) => layer.id.startsWith(activeLayer.id + '_'))
+            .map((layer: any) => layer.id)
+        });
+
+        if (queryResult.length > 0) {
+          layerFeatures = queryResult.map((feature: any) => {
+            // Find the original feature from the layer data
+            const originalFeature = activeLayer.data.features.find((f: any) => 
+              f.properties && feature.properties && 
+              JSON.stringify(f.properties) === JSON.stringify(feature.properties)
+            );
 
             return {
-              id: feature.id,
-              name: feature.properties?.name || `Field ${feature.id.slice(0, 6)}`,
+              id: feature.id || `layer_${Math.random().toString(36).substr(2, 9)}`,
+              name: feature.properties?.name || feature.properties?.Name || 
+                    feature.properties?.NAME || `Layer Feature ${Math.random().toString(36).substr(2, 6)}`,
               properties: feature.properties || {},
-              geometry: feature.geometry
+              geometry: feature.geometry,
+              source: 'layer',
+              layerId: activeLayer.id
             };
-          } catch (error) {
-            console.error('Error getting feature:', error);
-            return null;
-          }
-        })
-        .filter(Boolean) // Remove any null/undefined features
-        .sort((a: any, b: any) => a.id.localeCompare(b.id));
+          });
+        }
+      }
 
-      if (features.length === 0) {
+      // Combine all features
+      const allFeatures = [...drawnFeatures, ...layerFeatures];
+
+      if (allFeatures.length === 0) {
         setPopupInfo(null);
+        setPolygonPopupInfo(null);
         return;
       }
 
       // Only show popup for overlapping features, otherwise show polygon popup
-      if (features.length > 1) {
+      if (allFeatures.length > 1) {
         setPopupInfo({
-          features,
+          features: allFeatures,
           position: {
             x: e.point.x,
             y: e.point.y
@@ -816,7 +870,7 @@ export const MapView: React.FC<MapViewProps> = ({
         // Single feature, show polygon popup
         if (showPolygonPopup) {
           setPolygonPopupInfo({
-            feature: features[0],
+            feature: allFeatures[0],
             position: {
               x: e.point.x,
               y: e.point.y
@@ -824,10 +878,12 @@ export const MapView: React.FC<MapViewProps> = ({
           });
         } else {
           // Fallback to direct selection
-          handleFeatureSelection(features[0]);
+          handleFeatureSelection(allFeatures[0]);
         }
       }
     };
+
+
 
     // Add event listeners
     map.on('mousedown', onMouseDown);

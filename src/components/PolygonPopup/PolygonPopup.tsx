@@ -31,6 +31,7 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
   const renderFeatureContent = () => {
     const properties = feature.properties || {};
     const isWICLocation = properties.type === 'WIC Location' || feature.id?.startsWith('wic_');
+    const isLayerFeature = feature.source === 'layer';
     const isPoint = feature.geometry?.type === 'Point';
 
     if (isWICLocation && isPoint) {
@@ -81,6 +82,64 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
                 }}
               >
                 🚀 View WIC Details
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    } else if (isLayerFeature) {
+      // Layer feature content (from uploaded GIS data)
+      return (
+        <div style={{ padding: '8px 0' }}>
+          <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold', color: '#6B46C1' }}>
+            📍 {feature.name || 'Layer Feature'}
+          </h4>
+          
+          <div style={{ marginBottom: '8px' }}>
+            <p style={{ margin: '4px 0', fontSize: '12px', color: '#666' }}>
+              <strong>Type:</strong> {feature.geometry?.type || 'Unknown'}
+            </p>
+            <p style={{ margin: '4px 0', fontSize: '12px', color: '#666' }}>
+              <strong>Layer:</strong> {feature.layerId || 'Unknown'}
+            </p>
+          </div>
+
+          {/* Display all available properties */}
+          {Object.keys(properties).length > 0 && (
+            <div style={{ marginBottom: '8px', padding: '6px', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
+              <p style={{ margin: '2px 0', fontSize: '11px', color: '#666', fontWeight: 'bold' }}>
+                Properties:
+              </p>
+              {Object.entries(properties).slice(0, 5).map(([key, value]) => (
+                <p key={key} style={{ margin: '2px 0', fontSize: '11px', color: '#666', fontFamily: 'monospace' }}>
+                  {key}: {String(value)}
+                </p>
+              ))}
+              {Object.keys(properties).length > 5 && (
+                <p style={{ margin: '2px 0', fontSize: '11px', color: '#999', fontStyle: 'italic' }}>
+                  ... and {Object.keys(properties).length - 5} more properties
+                </p>
+              )}
+            </div>
+          )}
+
+          {onNavigate && (
+            <div style={{ marginTop: '12px' }}>
+              <button
+                onClick={() => handleNavigate('/layer-feature-details')}
+                style={{
+                  padding: '8px 12px',
+                  fontSize: '12px',
+                  backgroundColor: '#6B46C1',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  width: '100%',
+                  fontWeight: 'bold'
+                }}
+              >
+                🔍 View Layer Details
               </button>
             </div>
           )}
