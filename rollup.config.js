@@ -8,7 +8,7 @@ export default {
   output: {
     dir: 'dist',
     format: 'esm',
-    sourcemap: true,
+    sourcemap: false, // Disable source maps for published package
     entryFileNames: '[name].js',
     chunkFileNames: '[name]-[hash].js',
     assetFileNames: '[name]-[hash][extname]'
