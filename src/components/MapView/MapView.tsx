@@ -815,6 +815,9 @@ export const MapView: React.FC<MapViewProps> = ({
             return;
           }
 
+          // Prevent event bubbling to avoid conflicts with general click handler
+          e.originalEvent?.stopPropagation?.();
+
           if (enableDebugLogging) {
             console.log(`🎯 Layer click detected on ${mapLayer.id}!`, {
               layerId: layer.id,
@@ -867,6 +870,10 @@ export const MapView: React.FC<MapViewProps> = ({
               });
             }
 
+            // Clear any existing popups first
+            setPopupInfo(null);
+            setPolygonPopupInfo(null);
+
             // Show popup for the first feature (or selection popup for multiple)
             if (features.length === 1) {
               if (showPolygonPopup) {
@@ -909,6 +916,32 @@ export const MapView: React.FC<MapViewProps> = ({
       // Don't show popup if we're in drawing mode
       const currentMode = draw.getMode();
       if (currentMode === 'draw_polygon' || currentMode === 'direct_select') {
+        return;
+      }
+
+      // Check if this click was already handled by a layer-specific handler
+      // by checking if any layer features exist at this point
+      let hasLayerFeatures = false;
+      if (layers.length > 0) {
+        const allLayerIds = map.getStyle().layers
+          .filter((layer: any) => {
+            return layers.some(layerData => layer.id.startsWith(layerData.id + '_'));
+          })
+          .map((layer: any) => layer.id);
+
+        if (allLayerIds.length > 0) {
+          const queryResult = map.queryRenderedFeatures(e.point, {
+            layers: allLayerIds
+          });
+          hasLayerFeatures = queryResult.length > 0;
+        }
+      }
+
+      // If layer features were found, don't handle this click in the general handler
+      if (hasLayerFeatures) {
+        if (enableDebugLogging) {
+          console.log('🚫 Skipping general click handler - layer features found');
+        }
         return;
       }
 
