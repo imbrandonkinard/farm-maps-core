@@ -784,7 +784,113 @@ export const MapView: React.FC<MapViewProps> = ({
       map.getCanvas().style.cursor = '';
     };
 
-    // Add click handler
+    // Add layer-specific click handlers for each layer
+    layers.forEach(layer => {
+      // Get all map layers that belong to this layer
+      const mapLayers = map.getStyle().layers.filter((mapLayer: any) => 
+        mapLayer.id.startsWith(layer.id + '_')
+      );
+
+      mapLayers.forEach((mapLayer: any) => {
+        // Remove existing handler if it exists
+        map.off('click', mapLayer.id);
+        
+        // Add new click handler for this specific layer
+        map.on('click', mapLayer.id, (e: any) => {
+          if (isDragging) return;
+
+          const draw = drawRef.current;
+          if (!draw) return;
+
+          // Don't show popup if we're in drawing mode
+          const currentMode = draw.getMode();
+          if (currentMode === 'draw_polygon' || currentMode === 'direct_select') {
+            return;
+          }
+
+          if (enableDebugLogging) {
+            console.log(`🎯 Layer click detected on ${mapLayer.id}!`, {
+              layerId: layer.id,
+              mapLayerId: mapLayer.id,
+              clickPoint: e.point,
+              lngLat: e.lngLat
+            });
+          }
+
+          // Query features at the click point for this specific layer
+          const queryResult = map.queryRenderedFeatures(e.point, {
+            layers: [mapLayer.id]
+          });
+
+          if (enableDebugLogging) {
+            console.log(`Query result for ${mapLayer.id}:`, queryResult);
+          }
+
+          if (queryResult.length > 0) {
+            const features = queryResult.map((feature: any) => {
+              // Find the original feature from the layer data
+              const originalFeature = layer.data.features.find((f: any) =>
+                f.properties && feature.properties &&
+                JSON.stringify(f.properties) === JSON.stringify(feature.properties)
+              );
+
+              return {
+                id: feature.id || `layer_${Math.random().toString(36).substr(2, 9)}`,
+                name: feature.properties?.name || feature.properties?.Name ||
+                  feature.properties?.NAME || `Layer Feature ${Math.random().toString(36).substr(2, 6)}`,
+                properties: feature.properties || {},
+                geometry: feature.geometry,
+                source: 'layer',
+                layerId: layer.id
+              };
+            });
+
+            if (enableDebugLogging) {
+              console.log('🎯 Layer feature click detected!', {
+                layerId: layer.id,
+                mapLayerId: mapLayer.id,
+                featureCount: features.length,
+                features: features.map((f: any) => ({
+                  id: f.id,
+                  name: f.name,
+                  source: f.source,
+                  layerId: f.layerId,
+                  geometryType: f.geometry?.type
+                }))
+              });
+            }
+
+            // Show popup for the first feature (or selection popup for multiple)
+            if (features.length === 1) {
+              if (showPolygonPopup) {
+                console.log('📍 Showing polygon popup for layer feature:', features[0].name);
+                setPolygonPopupInfo({
+                  feature: features[0],
+                  position: {
+                    x: e.point.x,
+                    y: e.point.y
+                  }
+                });
+              } else {
+                console.log('🎯 Direct feature selection for layer feature:', features[0].name);
+                handleFeatureSelection(features[0]);
+              }
+            } else {
+              console.log('📋 Showing feature selection popup for multiple layer features');
+              setPopupInfo({
+                features: features,
+                position: {
+                  x: e.point.x,
+                  y: e.point.y
+                }
+              });
+            }
+          }
+        });
+      });
+    });
+
+    // Add general click handler for drawn features and areas without layer features
     const onClick = (e: any) => {
       if (isDragging) return;
 
@@ -797,7 +903,7 @@ export const MapView: React.FC<MapViewProps> = ({
         return;
       }
 
-      // Check for drawn features first
+      // Check for drawn features
       const drawnFeatureIds = draw.getFeatureIdsAt(e.point);
       let drawnFeatures: any[] = [];
 
@@ -825,133 +931,47 @@ export const MapView: React.FC<MapViewProps> = ({
           .sort((a: any, b: any) => a.id.localeCompare(b.id));
       }
 
-      // Check for layer features (from uploaded GIS data)
-      let layerFeatures: any[] = [];
-      if (layers.length > 0) {
-        if (enableDebugLogging) {
-          console.log('Available layers:', layers.map(l => l.id));
-          console.log('Map style layers:', map.getStyle().layers.map((l: any) => l.id));
-          console.log('WIC layer in layers:', layers.find(l => l.id === 'wic_locations_layer'));
-        }
-
-        // Get all layer IDs that could contain features
-        const allLayerIds = map.getStyle().layers
-          .filter((layer: any) => {
-            // Check if this layer belongs to any of our uploaded layers
-            return layers.some(layerData => layer.id.startsWith(layerData.id + '_'));
-          })
-          .map((layer: any) => layer.id);
-
-        if (enableDebugLogging) {
-          console.log('Filtered layer IDs for query:', allLayerIds);
-        }
-
-        if (allLayerIds.length > 0) {
-          if (enableDebugLogging) {
-            console.log('Querying layers for features:', allLayerIds);
-            console.log('Click point:', e.point);
-          }
-
-          // Query all visible layers for features at the click point
-          const queryResult = map.queryRenderedFeatures(e.point, {
-            layers: allLayerIds
-          });
-
-          if (enableDebugLogging) {
-            console.log('Query result:', queryResult);
-          }
-
-          if (queryResult.length > 0) {
-            if (enableDebugLogging) {
-              console.log('Found features in query result:', queryResult.length);
-              console.log('Query result features:', queryResult.map((f: any) => ({
-                id: f.id,
-                layer: f.layer?.id,
-                properties: f.properties
-              })));
-            }
-
-            layerFeatures = queryResult.map((feature: any) => {
-              // Find which layer this feature belongs to
-              const sourceLayer = layers.find(layerData =>
-                feature.layer.id.startsWith(layerData.id + '_')
-              );
-
-              if (enableDebugLogging && !sourceLayer) {
-                console.log('No source layer found for feature:', feature.layer?.id);
-              }
-
-              if (!sourceLayer) return null;
-
-              // Find the original feature from the layer data
-              const originalFeature = sourceLayer.data.features.find((f: any) =>
-                f.properties && feature.properties &&
-                JSON.stringify(f.properties) === JSON.stringify(feature.properties)
-              );
-
-              return {
-                id: feature.id || `layer_${Math.random().toString(36).substr(2, 9)}`,
-                name: feature.properties?.name || feature.properties?.Name ||
-                  feature.properties?.NAME || `Layer Feature ${Math.random().toString(36).substr(2, 6)}`,
-                properties: feature.properties || {},
-                geometry: feature.geometry,
-                source: 'layer',
-                layerId: sourceLayer.id
-              };
-            }).filter(Boolean); // Remove any null results
-          }
-        }
-      }
-
-      // Combine all features
-      const allFeatures = [...drawnFeatures, ...layerFeatures];
-
-      if (allFeatures.length === 0) {
-        setPopupInfo(null);
-        setPolygonPopupInfo(null);
-        return;
-      }
-
-      // Log feature click detection
-      console.log('🎯 Feature click detected!', {
-        totalFeatures: allFeatures.length,
-        drawnFeatures: drawnFeatures.length,
-        layerFeatures: layerFeatures.length,
-        features: allFeatures.map(f => ({
-          id: f.id,
-          name: f.name,
-          source: f.source,
-          layerId: f.layerId,
-          geometryType: f.geometry?.type
-        }))
-      });
-
-      // Only show popup for overlapping features, otherwise show polygon popup
-      if (allFeatures.length > 1) {
-        console.log('📋 Showing feature selection popup for overlapping features');
-        setPopupInfo({
-          features: allFeatures,
-          position: {
-            x: e.point.x,
-            y: e.point.y
-          }
+      // Only handle drawn features in the general click handler
+      // Layer features are handled by layer-specific handlers above
+      if (drawnFeatures.length > 0) {
+        console.log('🎯 Drawn feature click detected!', {
+          featureCount: drawnFeatures.length,
+          features: drawnFeatures.map(f => ({
+            id: f.id,
+            name: f.name,
+            source: f.source,
+            geometryType: f.geometry?.type
+          }))
         });
-      } else {
-        // Single feature, show polygon popup
-        if (showPolygonPopup) {
-          console.log('📍 Showing polygon popup for single feature:', allFeatures[0].name);
-          setPolygonPopupInfo({
-            feature: allFeatures[0],
+
+        if (drawnFeatures.length === 1) {
+          if (showPolygonPopup) {
+            console.log('📍 Showing polygon popup for drawn feature:', drawnFeatures[0].name);
+            setPolygonPopupInfo({
+              feature: drawnFeatures[0],
+              position: {
+                x: e.point.x,
+                y: e.point.y
+              }
+            });
+          } else {
+            console.log('🎯 Direct feature selection for drawn feature:', drawnFeatures[0].name);
+            handleFeatureSelection(drawnFeatures[0]);
+          }
+        } else {
+          console.log('📋 Showing feature selection popup for multiple drawn features');
+          setPopupInfo({
+            features: drawnFeatures,
             position: {
               x: e.point.x,
               y: e.point.y
             }
           });
-        } else {
-          console.log('🎯 Direct feature selection for:', allFeatures[0].name);
-          // Fallback to direct selection
-          handleFeatureSelection(allFeatures[0]);
         }
+      } else {
+        // No features found, clear popups
+        setPopupInfo(null);
+        setPolygonPopupInfo(null);
       }
     };
 
@@ -972,7 +992,7 @@ export const MapView: React.FC<MapViewProps> = ({
       map.off('click', onClick);
       map.getCanvas().style.cursor = '';
     };
-  }, [mapLoaded]);
+  }, [mapLoaded, layers, showPolygonPopup, enableDebugLogging]);
 
   // Draw all features from the Drawn Fields array
   const drawAllFeatures = useCallback(() => {
