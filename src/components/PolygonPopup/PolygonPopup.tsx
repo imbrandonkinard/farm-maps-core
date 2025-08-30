@@ -32,21 +32,27 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
 
   const handleNavigate = (route: string) => {
     if (onNavigate) {
-      onNavigate(route, feature.id);
+      try {
+        onNavigate(route, feature.id);
+      } catch (error) {
+        console.error('Navigation error:', error);
+        // Fallback: show feature details instead of navigating
+        console.log('Showing feature details instead of navigating');
+      }
     }
   };
 
-    // Determine feature type and corresponding colors
+  // Determine feature type and corresponding colors
   const getFeatureTypeInfo = () => {
     const properties = feature.properties || {};
     const isWICLocation = properties.type === 'WIC Location' || feature.id?.startsWith('wic_') || feature.layerId === 'wic_locations_layer';
     const isLayerFeature = feature.source === 'layer';
     const isDrawnFeature = feature.source === 'drawn' || !isLayerFeature;
-    
+
     // Get the layer's actual color from the feature or layer data
     let layerColor = '#666666'; // Default gray
     let layerName = 'Unknown Layer';
-    
+
     // Try to get color from feature's layer information
     if (feature.layerColor) {
       layerColor = feature.layerColor;
@@ -55,15 +61,15 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
     } else if (feature.layerStyle?.line?.color) {
       layerColor = feature.layerStyle.line.color;
     }
-    
+
     // Try to get layer name
     if (feature.layerName) {
       layerName = feature.layerName;
     }
-    
+
     // Get color information
     const colorInfo = getColorInfo(layerColor);
-    
+
     // Check layer ID to determine specific type
     if (isWICLocation) {
       return {
@@ -133,6 +139,70 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
 
   const featureTypeInfo = getFeatureTypeInfo();
 
+  // Render comprehensive feature details
+  const renderFeatureDetails = () => {
+    const properties = feature.properties || {};
+    
+    return (
+      <div style={{ 
+        marginTop: '12px', 
+        padding: '8px', 
+        backgroundColor: '#f8f9fa', 
+        borderRadius: '4px',
+        border: `1px solid ${featureTypeInfo.color}20`
+      }}>
+        <h5 style={{ 
+          margin: '0 0 8px 0', 
+          fontSize: '12px', 
+          fontWeight: 'bold', 
+          color: featureTypeInfo.color 
+        }}>
+          📋 Feature Details
+        </h5>
+        
+        <div style={{ fontSize: '11px', color: '#666' }}>
+          <p style={{ margin: '2px 0' }}>
+            <strong>Feature ID:</strong> {feature.id}
+          </p>
+          <p style={{ margin: '2px 0' }}>
+            <strong>Feature Name:</strong> {feature.name || 'Unnamed'}
+          </p>
+          <p style={{ margin: '2px 0' }}>
+            <strong>Layer:</strong> {featureTypeInfo.layerName}
+          </p>
+          <p style={{ margin: '2px 0' }}>
+            <strong>Layer ID:</strong> {feature.layerId || 'Unknown'}
+          </p>
+          <p style={{ margin: '2px 0' }}>
+            <strong>Geometry Type:</strong> {feature.geometry?.type || 'Unknown'}
+          </p>
+          <p style={{ margin: '2px 0' }}>
+            <strong>Source:</strong> {feature.source || 'Unknown'}
+          </p>
+          
+          {/* Display all available properties */}
+          {Object.keys(properties).length > 0 && (
+            <div style={{ marginTop: '8px' }}>
+              <p style={{ margin: '4px 0 2px 0', fontWeight: 'bold' }}>
+                Properties ({Object.keys(properties).length}):
+              </p>
+              {Object.entries(properties).slice(0, 8).map(([key, value]) => (
+                <p key={key} style={{ margin: '1px 0', fontFamily: 'monospace', fontSize: '10px' }}>
+                  <strong>{key}:</strong> {String(value)}
+                </p>
+              ))}
+              {Object.keys(properties).length > 8 && (
+                <p style={{ margin: '2px 0', fontSize: '10px', color: '#999', fontStyle: 'italic' }}>
+                  ... and {Object.keys(properties).length - 8} more properties
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   // Determine feature type and render appropriate content
   const renderFeatureContent = () => {
     const properties = feature.properties || {};
@@ -171,26 +241,8 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
             </div>
           )}
 
-          {onNavigate && (
-            <div style={{ marginTop: '12px' }}>
-              <button
-                onClick={() => handleNavigate('/wic-details')}
-                style={{
-                  padding: '8px 12px',
-                  fontSize: '12px',
-                  backgroundColor: featureTypeInfo.color,
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  width: '100%',
-                  fontWeight: 'bold'
-                }}
-              >
-                🚀 View WIC Details
-              </button>
-            </div>
-          )}
+          {/* Always show feature details instead of navigation */}
+          {renderFeatureDetails()}
         </div>
       );
     } else if (isLayerFeature) {
@@ -229,26 +281,8 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
             </div>
           )}
 
-          {onNavigate && (
-            <div style={{ marginTop: '12px' }}>
-              <button
-                onClick={() => handleNavigate('/layer-feature-details')}
-                style={{
-                  padding: '8px 12px',
-                  fontSize: '12px',
-                  backgroundColor: featureTypeInfo.color,
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  width: '100%',
-                  fontWeight: 'bold'
-                }}
-              >
-                🔍 View Layer Details
-              </button>
-            </div>
-          )}
+          {/* Always show feature details instead of navigation */}
+          {renderFeatureDetails()}
         </div>
       );
     } else if (properties.area) {
@@ -261,39 +295,8 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
           <p style={{ margin: '4px 0', fontSize: '12px', color: '#666' }}>
             Area: {properties.area} acres
           </p>
-          {onNavigate && (
-            <div style={{ marginTop: '8px' }}>
-              <button
-                onClick={() => handleNavigate('/field-details')}
-                style={{
-                  padding: '4px 8px',
-                  fontSize: '11px',
-                  backgroundColor: featureTypeInfo.color,
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '3px',
-                  cursor: 'pointer',
-                  marginRight: '4px'
-                }}
-              >
-                View Details
-              </button>
-              <button
-                onClick={() => handleNavigate('/field-edit')}
-                style={{
-                  padding: '4px 8px',
-                  fontSize: '11px',
-                  backgroundColor: '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '3px',
-                  cursor: 'pointer'
-                }}
-              >
-                Edit
-              </button>
-            </div>
-          )}
+          {/* Always show feature details instead of navigation */}
+          {renderFeatureDetails()}
         </div>
       );
     } else {
@@ -308,24 +311,8 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
               {properties.description}
             </p>
           )}
-          {onNavigate && (
-            <div style={{ marginTop: '8px' }}>
-              <button
-                onClick={() => handleNavigate('/feature-details')}
-                style={{
-                  padding: '4px 8px',
-                  fontSize: '11px',
-                  backgroundColor: featureTypeInfo.color,
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '3px',
-                  cursor: 'pointer'
-                }}
-              >
-                View Details
-              </button>
-            </div>
-          )}
+          {/* Always show feature details instead of navigation */}
+          {renderFeatureDetails()}
         </div>
       );
     }

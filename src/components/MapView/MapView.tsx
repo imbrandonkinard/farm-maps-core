@@ -879,20 +879,32 @@ export const MapView: React.FC<MapViewProps> = ({
 
             // Show popup for the first feature (or selection popup for multiple)
             if (features.length === 1) {
-              if (showPolygonPopup) {
-                console.log('📍 Showing polygon popup for layer feature:', features[0].name);
-                const popupData = {
-                  feature: features[0],
+              try {
+                if (showPolygonPopup) {
+                  console.log('📍 Showing polygon popup for layer feature:', features[0].name);
+                  const popupData = {
+                    feature: features[0],
+                    position: {
+                      x: e.point.x,
+                      y: e.point.y
+                    }
+                  };
+                  console.log('Setting polygonPopupInfo to:', popupData);
+                  setPolygonPopupInfo(popupData);
+                } else {
+                  console.log('🎯 Direct feature selection for layer feature:', features[0].name);
+                  handleFeatureSelection(features[0]);
+                }
+              } catch (error) {
+                console.error('Error handling single feature click:', error);
+                // Fallback: show feature selection popup
+                setPopupInfo({
+                  features: features,
                   position: {
                     x: e.point.x,
                     y: e.point.y
                   }
-                };
-                console.log('Setting polygonPopupInfo to:', popupData);
-                setPolygonPopupInfo(popupData);
-              } else {
-                console.log('🎯 Direct feature selection for layer feature:', features[0].name);
-                handleFeatureSelection(features[0]);
+                });
               }
             } else {
               console.log('📋 Showing feature selection popup for multiple layer features');
@@ -997,18 +1009,30 @@ export const MapView: React.FC<MapViewProps> = ({
         });
 
         if (drawnFeatures.length === 1) {
-          if (showPolygonPopup) {
-            console.log('📍 Showing polygon popup for drawn feature:', drawnFeatures[0].name);
-            setPolygonPopupInfo({
-              feature: drawnFeatures[0],
+          try {
+            if (showPolygonPopup) {
+              console.log('📍 Showing polygon popup for drawn feature:', drawnFeatures[0].name);
+              setPolygonPopupInfo({
+                feature: drawnFeatures[0],
+                position: {
+                  x: e.point.x,
+                  y: e.point.y
+                }
+              });
+            } else {
+              console.log('🎯 Direct feature selection for drawn feature:', drawnFeatures[0].name);
+              handleFeatureSelection(drawnFeatures[0]);
+            }
+          } catch (error) {
+            console.error('Error handling single drawn feature click:', error);
+            // Fallback: show feature selection popup
+            setPopupInfo({
+              features: drawnFeatures,
               position: {
                 x: e.point.x,
                 y: e.point.y
               }
             });
-          } else {
-            console.log('🎯 Direct feature selection for drawn feature:', drawnFeatures[0].name);
-            handleFeatureSelection(drawnFeatures[0]);
           }
         } else {
           console.log('📋 Showing feature selection popup for multiple drawn features');
