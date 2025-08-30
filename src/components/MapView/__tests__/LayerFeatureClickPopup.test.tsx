@@ -20,12 +20,12 @@ jest.mock('react-map-gl/maplibre', () => ({
 const mockMap = {
   on: jest.fn(),
   off: jest.fn(),
-  getStyle: jest.fn(() => ({ 
+  getStyle: jest.fn(() => ({
     layers: [
       { id: 'test-layer_circle_0' },
       { id: 'test-layer_fill_0' },
       { id: 'other-layer_circle_0' }
-    ] 
+    ]
   })),
   addSource: jest.fn(),
   addLayer: jest.fn(),
@@ -58,7 +58,7 @@ jest.mock('../../../utils/mapboxUtils', () => ({
 }));
 
 // Mock console.log to capture logs
-const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => { });
 
 describe('LayerFeatureClickPopup', () => {
   let store: any;
@@ -73,7 +73,7 @@ describe('LayerFeatureClickPopup', () => {
         {
           id: 'layer-feature-1',
           type: 'Feature',
-          properties: { 
+          properties: {
             name: 'Test Point',
             type: 'Point Feature'
           },
@@ -105,7 +105,7 @@ describe('LayerFeatureClickPopup', () => {
       },
     });
     mockConsoleLog.mockClear();
-    
+
     // Reset mock implementations
     mockMap.queryRenderedFeatures.mockReturnValue([]);
   });
@@ -120,7 +120,7 @@ describe('LayerFeatureClickPopup', () => {
       {
         id: 'layer-feature-1',
         layer: { id: 'test-layer_circle_0' },
-        properties: { 
+        properties: {
           name: 'Test Point',
           type: 'Point Feature'
         },
@@ -133,7 +133,7 @@ describe('LayerFeatureClickPopup', () => {
 
     render(
       <Provider store={store}>
-        <MapView 
+        <MapView
           enableDebugLogging={true}
           showPolygonPopup={true}
           customLayers={[mockLayer]}
@@ -142,7 +142,7 @@ describe('LayerFeatureClickPopup', () => {
     );
 
     const map = screen.getByTestId('map');
-    
+
     // Simulate click on map
     fireEvent.click(map, {
       point: { x: 100, y: 100 }
@@ -176,7 +176,7 @@ describe('LayerFeatureClickPopup', () => {
       {
         id: 'layer-feature-1',
         layer: { id: 'test-layer_circle_0' },
-        properties: { 
+        properties: {
           name: 'Test Point',
           type: 'Point Feature'
         },
@@ -189,7 +189,7 @@ describe('LayerFeatureClickPopup', () => {
 
     render(
       <Provider store={store}>
-        <MapView 
+        <MapView
           enableDebugLogging={true}
           showPolygonPopup={true}
           customLayers={[mockLayer]}
@@ -198,7 +198,7 @@ describe('LayerFeatureClickPopup', () => {
     );
 
     const map = screen.getByTestId('map');
-    
+
     // Simulate click on map
     fireEvent.click(map, {
       point: { x: 100, y: 100 }
@@ -219,7 +219,7 @@ describe('LayerFeatureClickPopup', () => {
       {
         id: 'layer-feature-1',
         layer: { id: 'test-layer_circle_0' },
-        properties: { 
+        properties: {
           name: 'Test Point 1',
           type: 'Point Feature'
         },
@@ -231,7 +231,7 @@ describe('LayerFeatureClickPopup', () => {
       {
         id: 'layer-feature-2',
         layer: { id: 'test-layer_circle_0' },
-        properties: { 
+        properties: {
           name: 'Test Point 2',
           type: 'Point Feature'
         },
@@ -251,7 +251,7 @@ describe('LayerFeatureClickPopup', () => {
           {
             id: 'layer-feature-2',
             type: 'Feature',
-            properties: { 
+            properties: {
               name: 'Test Point 2',
               type: 'Point Feature'
             },
@@ -266,7 +266,7 @@ describe('LayerFeatureClickPopup', () => {
 
     render(
       <Provider store={store}>
-        <MapView 
+        <MapView
           enableDebugLogging={true}
           showPolygonPopup={true}
           customLayers={[multiFeatureLayer]}
@@ -275,7 +275,7 @@ describe('LayerFeatureClickPopup', () => {
     );
 
     const map = screen.getByTestId('map');
-    
+
     // Simulate click on map
     fireEvent.click(map, {
       point: { x: 100, y: 100 }
@@ -306,7 +306,7 @@ describe('LayerFeatureClickPopup', () => {
 
     render(
       <Provider store={store}>
-        <MapView 
+        <MapView
           enableDebugLogging={true}
           showPolygonPopup={true}
           customLayers={[mockLayer]}
@@ -315,7 +315,7 @@ describe('LayerFeatureClickPopup', () => {
     );
 
     const map = screen.getByTestId('map');
-    
+
     // Simulate click on map
     fireEvent.click(map, {
       point: { x: 100, y: 100 }
@@ -337,7 +337,7 @@ describe('LayerFeatureClickPopup', () => {
       {
         id: 'layer-feature-1',
         layer: { id: 'test-layer_circle_0' },
-        properties: { 
+        properties: {
           name: 'Test Point',
           type: 'Point Feature'
         },
@@ -350,7 +350,7 @@ describe('LayerFeatureClickPopup', () => {
 
     render(
       <Provider store={store}>
-        <MapView 
+        <MapView
           enableDebugLogging={true}
           showPolygonPopup={true}
           customLayers={[mockLayer]}
@@ -359,7 +359,7 @@ describe('LayerFeatureClickPopup', () => {
     );
 
     const map = screen.getByTestId('map');
-    
+
     // Simulate click on map
     fireEvent.click(map, {
       point: { x: 100, y: 100 }

@@ -831,6 +831,7 @@ export const MapView: React.FC<MapViewProps> = ({
         if (enableDebugLogging) {
           console.log('Available layers:', layers.map(l => l.id));
           console.log('Map style layers:', map.getStyle().layers.map((l: any) => l.id));
+          console.log('WIC layer in layers:', layers.find(l => l.id === 'wic_locations_layer'));
         }
 
         // Get all layer IDs that could contain features
@@ -861,11 +862,24 @@ export const MapView: React.FC<MapViewProps> = ({
           }
 
           if (queryResult.length > 0) {
+            if (enableDebugLogging) {
+              console.log('Found features in query result:', queryResult.length);
+              console.log('Query result features:', queryResult.map((f: any) => ({
+                id: f.id,
+                layer: f.layer?.id,
+                properties: f.properties
+              })));
+            }
+
             layerFeatures = queryResult.map((feature: any) => {
               // Find which layer this feature belongs to
               const sourceLayer = layers.find(layerData =>
                 feature.layer.id.startsWith(layerData.id + '_')
               );
+
+              if (enableDebugLogging && !sourceLayer) {
+                console.log('No source layer found for feature:', feature.layer?.id);
+              }
 
               if (!sourceLayer) return null;
 

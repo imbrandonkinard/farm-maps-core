@@ -60,7 +60,7 @@ jest.mock('../../../utils/mapboxUtils', () => ({
 }));
 
 // Mock console.log to capture logs
-const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => { });
 
 describe('DrawnFeatureClick', () => {
   let store: any;
@@ -95,7 +95,7 @@ describe('DrawnFeatureClick', () => {
   it('should log feature click detection when clicking on drawn feature', async () => {
     render(
       <Provider store={store}>
-        <MapView 
+        <MapView
           enableDebugLogging={true}
           showPolygonPopup={true}
         />
@@ -103,7 +103,7 @@ describe('DrawnFeatureClick', () => {
     );
 
     const map = screen.getByTestId('map');
-    
+
     // Simulate click on map
     fireEvent.click(map, {
       point: { x: 100, y: 100 }
@@ -133,7 +133,7 @@ describe('DrawnFeatureClick', () => {
   it('should log polygon popup display for single drawn feature', async () => {
     render(
       <Provider store={store}>
-        <MapView 
+        <MapView
           enableDebugLogging={true}
           showPolygonPopup={true}
         />
@@ -141,7 +141,7 @@ describe('DrawnFeatureClick', () => {
     );
 
     const map = screen.getByTestId('map');
-    
+
     // Simulate click on map
     fireEvent.click(map, {
       point: { x: 100, y: 100 }
@@ -159,7 +159,7 @@ describe('DrawnFeatureClick', () => {
   it('should log direct feature selection when showPolygonPopup is false', async () => {
     render(
       <Provider store={store}>
-        <MapView 
+        <MapView
           enableDebugLogging={true}
           showPolygonPopup={false}
         />
@@ -167,7 +167,7 @@ describe('DrawnFeatureClick', () => {
     );
 
     const map = screen.getByTestId('map');
-    
+
     // Simulate click on map
     fireEvent.click(map, {
       point: { x: 100, y: 100 }
@@ -189,7 +189,7 @@ describe('DrawnFeatureClick', () => {
 
     render(
       <Provider store={store}>
-        <MapView 
+        <MapView
           enableDebugLogging={true}
           showPolygonPopup={true}
         />
@@ -197,7 +197,7 @@ describe('DrawnFeatureClick', () => {
     );
 
     const map = screen.getByTestId('map');
-    
+
     // Simulate click on map
     fireEvent.click(map, {
       point: { x: 100, y: 100 }
