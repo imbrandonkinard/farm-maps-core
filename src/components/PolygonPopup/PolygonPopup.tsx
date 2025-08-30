@@ -245,9 +245,17 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
             </div>
           )}
 
-          {/* Details button to show/hide feature details */}
+                    {/* Details button to navigate to feature details */}
           <button
-            onClick={() => setShowDetails(!showDetails)}
+            onClick={() => {
+              if (onNavigate) {
+                // Pass feature data to client for navigation
+                onNavigate('/feature-details', feature);
+              } else {
+                // Fallback: show details directly if no navigation handler
+                setShowDetails(!showDetails);
+              }
+            }}
             style={{
               backgroundColor: featureTypeInfo.color,
               color: 'white',
@@ -260,10 +268,11 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
               fontWeight: 'bold'
             }}
           >
-            {showDetails ? 'Hide Details' : 'Details'}
+            Details
           </button>
           
-          {showDetails && renderFeatureDetails()}
+          {/* Show details directly only if no navigation handler and details are toggled */}
+          {!onNavigate && showDetails && renderFeatureDetails()}
         </div>
       );
     } else if (isLayerFeature) {
@@ -302,9 +311,17 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
             </div>
           )}
 
-          {/* Details button to show/hide feature details */}
+                    {/* Details button to navigate to feature details */}
           <button
-            onClick={() => setShowDetails(!showDetails)}
+            onClick={() => {
+              if (onNavigate) {
+                // Pass feature data to client for navigation
+                onNavigate('/feature-details', feature);
+              } else {
+                // Fallback: show details directly if no navigation handler
+                setShowDetails(!showDetails);
+              }
+            }}
             style={{
               backgroundColor: featureTypeInfo.color,
               color: 'white',
@@ -317,10 +334,11 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
               fontWeight: 'bold'
             }}
           >
-            {showDetails ? 'Hide Details' : 'Details'}
+            Details
           </button>
           
-          {showDetails && renderFeatureDetails()}
+          {/* Show details directly only if no navigation handler and details are toggled */}
+          {!onNavigate && showDetails && renderFeatureDetails()}
         </div>
       );
     } else if (properties.area) {
@@ -333,9 +351,17 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
           <p style={{ margin: '4px 0', fontSize: '12px', color: '#666' }}>
             Area: {properties.area} acres
           </p>
-          {/* Details button to show/hide feature details */}
+                    {/* Details button to navigate to feature details */}
           <button
-            onClick={() => setShowDetails(!showDetails)}
+            onClick={() => {
+              if (onNavigate) {
+                // Pass feature data to client for navigation
+                onNavigate('/feature-details', feature);
+              } else {
+                // Fallback: show details directly if no navigation handler
+                setShowDetails(!showDetails);
+              }
+            }}
             style={{
               backgroundColor: featureTypeInfo.color,
               color: 'white',
@@ -348,10 +374,11 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
               fontWeight: 'bold'
             }}
           >
-            {showDetails ? 'Hide Details' : 'Details'}
+            Details
           </button>
           
-          {showDetails && renderFeatureDetails()}
+          {/* Show details directly only if no navigation handler and details are toggled */}
+          {!onNavigate && showDetails && renderFeatureDetails()}
         </div>
       );
     } else {
@@ -366,9 +393,17 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
               {properties.description}
             </p>
           )}
-          {/* Details button to show/hide feature details */}
+                    {/* Details button to navigate to feature details */}
           <button
-            onClick={() => setShowDetails(!showDetails)}
+            onClick={() => {
+              if (onNavigate) {
+                // Pass feature data to client for navigation
+                onNavigate('/feature-details', feature);
+              } else {
+                // Fallback: show details directly if no navigation handler
+                setShowDetails(!showDetails);
+              }
+            }}
             style={{
               backgroundColor: featureTypeInfo.color,
               color: 'white',
@@ -381,10 +416,11 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
               fontWeight: 'bold'
             }}
           >
-            {showDetails ? 'Hide Details' : 'Details'}
+            Details
           </button>
           
-          {showDetails && renderFeatureDetails()}
+          {/* Show details directly only if no navigation handler and details are toggled */}
+          {!onNavigate && showDetails && renderFeatureDetails()}
         </div>
       );
     }
