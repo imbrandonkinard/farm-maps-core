@@ -35,8 +35,9 @@ export const FeatureSelectPopup: React.FC<FeatureSelectPopupProps> = (props) => 
       pointerEvents: 'auto',
       border: '1px solid #ddd'
     }
-  }, [
+  }, 
     React.createElement('div', {
+      key: 'header',
       style: {
         borderBottom: '1px solid #eee',
         paddingBottom: '8px',
@@ -51,6 +52,8 @@ export const FeatureSelectPopup: React.FC<FeatureSelectPopupProps> = (props) => 
       const featureKey = featureId ? `feature-${featureId}` : `feature-index-${index}`;
       const featureName = feature.name || feature.feature?.name || `Field ${String(featureId || '').slice(0, 6) || 'Unknown'}`;
 
+      console.log(`Creating feature element with key: ${featureKey} for feature:`, feature);
+
       return React.createElement('div', {
         key: featureKey,
         onClick: () => onSelect(feature.feature || feature),
@@ -64,6 +67,7 @@ export const FeatureSelectPopup: React.FC<FeatureSelectPopupProps> = (props) => 
       }, featureName);
     }),
     React.createElement('button', {
+      key: 'close-button',
       onClick: onClose,
       style: {
         position: 'absolute',
@@ -79,7 +83,7 @@ export const FeatureSelectPopup: React.FC<FeatureSelectPopupProps> = (props) => 
       },
       title: 'Close'
     }, '✕')
-  ]);
+  );
 };
 
 export default FeatureSelectPopup;
