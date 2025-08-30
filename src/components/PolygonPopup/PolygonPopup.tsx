@@ -21,6 +21,14 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
   className = '',
   style = {}
 }) => {
+  // Debug logging
+  console.log('🎨 PolygonPopup component rendering with:', {
+    feature: feature,
+    position: position,
+    showDefaultContent,
+    customContent: !!customContent
+  });
+
   const handleNavigate = (route: string) => {
     if (onNavigate) {
       onNavigate(route, feature.id);
@@ -227,6 +235,13 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
 
   const defaultContent = renderFeatureContent();
 
+  console.log('🎨 PolygonPopup rendering content:', {
+    defaultContent: !!defaultContent,
+    customContent: !!customContent,
+    showDefaultContent,
+    finalContent: customContent || (showDefaultContent ? defaultContent : null)
+  });
+
   return (
     <div
       className={`polygon-popup ${className}`}
@@ -235,12 +250,13 @@ export const PolygonPopup: React.FC<PolygonPopupProps> = ({
         left: position.x + 10,
         top: position.y - 10,
         backgroundColor: 'white',
-        border: '1px solid #ccc',
+        border: '3px solid #ff0000', // Red border for debugging
         borderRadius: '6px',
         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        zIndex: 1000,
+        zIndex: 10000, // Higher z-index
         minWidth: '220px',
         maxWidth: '320px',
+        opacity: 1, // Ensure it's visible
         ...style
       }}
     >
